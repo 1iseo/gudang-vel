@@ -1,0 +1,270 @@
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import AppLayout from '@/layouts/app-layout';
+import { BreadcrumbItem } from '@/types';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Pagination, PaginationContent, PaginationItem } from '@/components/ui/pagination';
+import { Badge } from '@/components/ui/badge';
+import { Head, useForm } from '@inertiajs/react';
+import { Avatar, AvatarImage, AvatarFallback } from '@radix-ui/react-avatar';
+import { DropdownMenuContent, DropdownMenuLabel, DropdownMenuItem, DropdownMenu } from '@/components/ui/dropdown-menu';
+import { Search, ListFilter, PlusCircle, MoreHorizontal, Pencil, Trash2, ChevronLeft, ChevronRight, X } from 'lucide-react';
+import React from 'react';
+import { DropdownMenuTrigger } from '@radix-ui/react-dropdown-menu';
+
+interface BarangType {
+    id: number;
+    kode: string;
+    nama: string;
+    kategori: string;
+    lokasi: string;
+    stok: number;
+    foto: string;
+}
+
+interface ItemDetailModalProps {
+    item: BarangType | null;
+    onClose: () => void;
+}
+
+// Data dummy untuk demonstrasi
+const mockBarang: BarangType[] = [
+    {
+        id: 1,
+        kode: 'BRG-001',
+        nama: 'Laptop ProX 15',
+        kategori: 'Elektronik',
+        lokasi: 'Rak A-1',
+        stok: 25,
+        foto: 'https://placehold.co/40x40/E5E7EB/4B5563?text=LPX',
+    },
+    {
+        id: 2,
+        kode: 'BRG-002',
+        nama: 'Mouse Wireless Silent',
+        kategori: 'Aksesoris Komputer',
+        lokasi: 'Rak B-3',
+        stok: 150,
+        foto: 'https://placehold.co/40x40/E5E7EB/4B5563?text=MWS',
+    },
+    {
+        id: 3,
+        kode: 'BRG-003',
+        nama: 'Keyboard Mechanical RGB',
+        kategori: 'Aksesoris Komputer',
+        lokasi: 'Rak B-4',
+        stok: 75,
+        foto: 'https://placehold.co/40x40/E5E7EB/4B5563?text=KMR',
+    },
+    {
+        id: 4,
+        kode: 'BRG-004',
+        nama: 'Monitor Ultrawide 34"',
+        kategori: 'Elektronik',
+        lokasi: 'Rak A-2',
+        stok: 15,
+        foto: 'https://placehold.co/40x40/E5E7EB/4B5563?text=MUW',
+    },
+    {
+        id: 5,
+        kode: 'BRG-005',
+        nama: 'Kursi Gaming Ergonomis',
+        kategori: 'Furnitur',
+        lokasi: 'Gudang Belakang',
+        stok: 40,
+        foto: 'https://placehold.co/40x40/E5E7EB/4B5563?text=KGE',
+    },
+    {
+        id: 6,
+        kode: 'BRG-006',
+        nama: 'Webcam 4K Pro',
+        kategori: 'Aksesoris Komputer',
+        lokasi: 'Rak C-1',
+        stok: 90,
+        foto: 'https://placehold.co/40x40/E5E7EB/4B5563?text=W4K',
+    },
+];
+
+
+interface ItemDetailModalProps {
+    item: BarangType | null;
+    onClose: () => void;
+}
+
+const ItemDetailModal: React.FC<ItemDetailModalProps> = ({ item, onClose }) => {
+    const [isShowing, setIsShowing] = React.useState(false);
+
+    React.useEffect(() => {
+        // Tampilkan modal dengan transisi saat 'item' ada
+        if (item) {
+            const timer = setTimeout(() => setIsShowing(true), 10); // Delay kecil untuk memastikan transisi berjalan
+            return () => clearTimeout(timer);
+        } else {
+            setIsShowing(false);
+        }
+    }, [item]);
+
+    const handleClose = () => {
+        setIsShowing(false);
+        // Tunggu transisi selesai sebelum memanggil onClose
+        setTimeout(onClose, 200); // Durasi harus cocok dengan durasi transisi
+    };
+
+    if (!item) return null;
+
+    return (
+        <div
+            onClick={handleClose}
+            className={`fixed inset-0 z-50 flex items-center justify-center bg-black transition-opacity duration-200 ${isShowing ? 'bg-opacity-60 backdrop-blur-sm' : 'bg-opacity-0'}`}
+        >
+            <div
+                onClick={(e) => e.stopPropagation()}
+                className={`relative w-full max-w-3xl m-4 bg-card rounded-2xl shadow-xl transform transition-all duration-200 ${isShowing ? 'scale-100 opacity-100' : 'scale-95 opacity-0'}`}
+            >
+                <Card className="border-0">
+                    <div className="flex flex-col md:flex-row">
+                        <div className="md:w-1/2 p-6 flex items-center justify-center">
+                            <img src={item.foto} alt={`Foto ${item.nama}`} className="w-full h-auto max-h-[400px] object-contain rounded-lg" onError={(e) => { (e.target as HTMLImageElement).src = 'https://placehold.co/400x400/E5E7EB/4B5563?text=Error'; }} />
+                        </div>
+                        <div className="md:w-1/2 p-6 flex flex-col">
+                            <CardHeader className="p-0">
+                                <CardTitle className="text-3xl">{item.nama}</CardTitle>
+                                <CardDescription className="pt-1">{item.kode}</CardDescription>
+                            </CardHeader>
+                            <CardContent className="p-0 pt-4 flex-grow">
+                                <div className="space-y-3 text-base">
+                                    <div><strong>Kategori:</strong> <Badge variant="outline">{item.kategori}</Badge></div>
+                                    <div><strong>Lokasi:</strong> {item.lokasi}</div>
+                                    <div><strong>Stok Saat Ini:</strong> <span>{item.stok}</span> unit</div>
+                                    {/* <p className="text-muted-foreground pt-2 text-sm">{item.deskripsi}</p> */}
+                                </div>
+                            </CardContent>
+                        </div>
+                    </div>
+                </Card>
+                <button onClick={handleClose} className="absolute top-4 right-4 text-muted-foreground hover:text-foreground">
+                    <X className="h-6 w-6" />
+                </button>
+            </div>
+        </div>
+    );
+};
+
+
+
+
+export default function Barang() {
+    const [openDropdownId, setOpenDropdownId] = React.useState<number | null>(null);
+    const [selectedItem, setSelectedItem] = React.useState<BarangType | null>(null);
+
+    const toggleDropdown = (id: number) => {
+        console.log(`Toggling dropdown for item ID: ${id}`);
+        setOpenDropdownId(openDropdownId === id ? null : id);
+    };
+
+    const handleOpenModal = (item: BarangType) => {
+        setSelectedItem(item);
+    };
+
+    const handleCloseModal = () => {
+        setSelectedItem(null);
+    };
+
+
+    return (
+        <AppLayout >
+            <Head title="Daftar Barang" />
+            <ItemDetailModal item={selectedItem} onClose={handleCloseModal} />
+            <main className="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-0 md:gap-8 bg-gray-100 dark:bg-gray-900">
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Daftar Barang</CardTitle>
+                        <CardDescription>Kelola semua barang yang tersimpan di gudang. Klik baris untuk melihat detail.</CardDescription>
+                        <div className="mt-4 flex items-center gap-2">
+                            <div className="relative flex-1">
+                                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                                <Input type="search" placeholder="Cari barang berdasarkan nama atau kode..." className="w-full rounded-lg bg-background pl-8 md:w-[320px]" />
+                            </div>
+                            <div className="ml-auto flex items-center gap-2">
+                                <Button size="sm" variant="outline" className="h-8 gap-1">
+                                    <ListFilter className="h-3.5 w-3.5" />
+                                    <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">Filter</span>
+                                </Button>
+                                <Button size="sm" className="h-8 gap-1">
+                                    <PlusCircle className="h-3.5 w-3.5" />
+                                    <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">Tambah Barang</span>
+                                </Button>
+                            </div>
+                        </div>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="overflow-x-auto">
+                            <Table>
+                                <TableHeader>
+                                    <TableRow>
+                                        <TableHead className="hidden w-[100px] sm:table-cell"><span className="sr-only">Foto</span></TableHead>
+                                        <TableHead>Kode Barang</TableHead>
+                                        <TableHead>Nama</TableHead>
+                                        <TableHead>Kategori</TableHead>
+                                        <TableHead>Lokasi</TableHead>
+                                        <TableHead className="text-right">Stok</TableHead>
+                                        <TableHead><span className="sr-only">Aksi</span></TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    {mockBarang.map((item) => (
+                                        <TableRow key={item.id} onClick={() => handleOpenModal(item)}>
+                                            <TableCell className="hidden sm:table-cell">
+                                                <Avatar className="h-9 w-9">
+                                                    <AvatarImage src={item.foto.replace('400x400', '40x40')} alt={`Foto ${item.nama}`} />
+                                                    <AvatarFallback>{item.nama.substring(0, 2).toUpperCase()}</AvatarFallback>
+                                                </Avatar>
+                                            </TableCell>
+                                            <TableCell className="font-medium">{item.kode}</TableCell>
+                                            <TableCell>{item.nama}</TableCell>
+                                            <TableCell><Badge variant="outline">{item.kategori}</Badge></TableCell>
+                                            <TableCell>{item.lokasi}</TableCell>
+                                            <TableCell className="text-right">{item.stok}</TableCell>
+                                            <TableCell onClick={(e) => e.stopPropagation()}>
+                                                <div className="relative">
+                                                    <DropdownMenu>
+                                                        <DropdownMenuTrigger asChild>
+                                                            <Button aria-haspopup="true" size="icon" variant="ghost" onClick={() => toggleDropdown(item.id)}>
+                                                                <MoreHorizontal className="h-4 w-4" />
+                                                                <span className="sr-only">Toggle menu</span>
+                                                            </Button>                            
+                                                            </DropdownMenuTrigger>
+                                                        <DropdownMenuContent align="end">
+                                                            <DropdownMenuLabel>Aksi</DropdownMenuLabel>
+                                                            <DropdownMenuItem><Pencil className="mr-2 h-4 w-4" /><span>Edit</span></DropdownMenuItem>
+                                                            <DropdownMenuItem className="text-red-600 focus:text-red-600 focus:bg-red-100"><Trash2 className="mr-2 h-4 w-4" /><span>Hapus</span></DropdownMenuItem>
+                                                        </DropdownMenuContent>
+                                                    </DropdownMenu>
+                                                </div>
+                                            </TableCell>
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                            </Table>
+                        </div>
+                    </CardContent>
+                    <CardFooter>
+                        <div className="text-xs text-muted-foreground">Menampilkan <strong>1-{mockBarang.length}</strong> dari <strong>{mockBarang.length}</strong> produk</div>
+                        <Pagination className="ml-auto">
+                            <PaginationContent>
+                                <PaginationItem>
+                                    <Button size="icon" variant="outline" className="h-8 w-8"><ChevronLeft className="h-4 w-4" /><span className="sr-only">Halaman Sebelumnya</span></Button>
+                                </PaginationItem>
+                                <PaginationItem>
+                                    <Button size="icon" variant="outline" className="h-8 w-8"><ChevronRight className="h-4 w-4" /><span className="sr-only">Halaman Berikutnya</span></Button>
+                                </PaginationItem>
+                            </PaginationContent>
+                        </Pagination>
+                    </CardFooter>
+                </Card>
+            </main>
+        </AppLayout>
+
+    );
+}
