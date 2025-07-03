@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Barang;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use Inertia\Inertia;
 
 class BarangController extends Controller
@@ -20,20 +21,47 @@ class BarangController extends Controller
     }
 
     /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
      * Store a newly created resource in storage.
      */
+
     public function store(Request $request)
     {
-        //
+        $validated = $request->validate([
+            'kode' => 'required|string|unique:barang,kode',
+            'nama' => 'required|string',
+            'stok' => 'required|integer|min:0',
+            'lokasi' => 'required|string',
+            'image' => 'nullable|image|mimes:jpg,jpeg,png|max:2048', // Max 2MB
+        ]);
+
+        // Handle upload jika ada gambarnya
+        $imagePath = null;
+        if ($request->hasFile('image')) {
+            $image = $request->file('image');
+
+            // Buat nama file unik agar tidak tabrakan
+            $filename = Str::uuid() . '.' . $image->getClientOriginalExtension();
+
+            // Simpan file ke folder public/barang-images
+            $destinationPath = public_path('barang-images');
+            $image->move($destinationPath, $filename);
+
+            // Simpan path relatif agar bisa digunakan di frontend
+            $imagePath = 'barang-images/' . $filename;
+        }
+
+        Barang::create([
+            'kode' => $validated['kode'],
+            'nama' => $validated['nama'],
+            'stok' => $validated['stok'],
+            'lokasi' => $validated['lokasi'],
+            'kategori' => 'Aksesoris',
+            'image_path' => $imagePath,
+        ]);
+
+        return redirect()->back()->with('success', 'Barang berhasil disimpan.');
     }
+
 
     /**
      * Display the specified resource.

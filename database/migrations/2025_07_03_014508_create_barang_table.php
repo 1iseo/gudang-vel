@@ -16,7 +16,10 @@ return new class extends Migration
             $table->timestamps();
             $table->string('kode')->unique();
             $table->string('nama');
+            $table->string('lokasi')->default('');
+            $table->string('kategori')->default('Uncategorized'); // Default category
             $table->integer('stok')->default(0);
+
             // TODO: Verify that storing images in fs is possible in a shared hosting environment
             $table->string('image_path')->nullable(); // Optional field for storing image path
         });

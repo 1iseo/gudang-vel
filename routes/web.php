@@ -17,7 +17,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 Route::controller(BarangController::class)->group(function() {
     Route::get('/barang', 'index')->name('barang.index');
     // Route::get('/barang/create', 'create')->name('barang.create');
-    // Route::post('/barang', 'store')->name('barang.store');
+    Route::post('/barang', 'store')->name('barang.store');
     // Route::get('/barang/{barang}', 'show')->name('barang.show');
     // Route::get('/barang/{barang}/edit', 'edit')->name('barang.edit');
     // Route::put('/barang/{barang}', 'update')->name('barang.update');

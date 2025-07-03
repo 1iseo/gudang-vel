@@ -6,12 +6,13 @@ import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Pagination, PaginationContent, PaginationItem } from '@/components/ui/pagination';
 import { Badge } from '@/components/ui/badge';
-import { Head, useForm } from '@inertiajs/react';
+import { Head, useForm, usePage } from '@inertiajs/react';
 import { Avatar, AvatarImage, AvatarFallback } from '@radix-ui/react-avatar';
 import { DropdownMenuContent, DropdownMenuLabel, DropdownMenuItem, DropdownMenu } from '@/components/ui/dropdown-menu';
 import { Search, ListFilter, PlusCircle, MoreHorizontal, Pencil, Trash2, ChevronLeft, ChevronRight, X } from 'lucide-react';
 import React from 'react';
 import { DropdownMenuTrigger } from '@radix-ui/react-dropdown-menu';
+import { TambahBarangSheet } from '@/components/barang/tambah-barang-sheet';
 
 interface BarangType {
     id: number;
@@ -27,65 +28,6 @@ interface ItemDetailModalProps {
     item: BarangType | null;
     onClose: () => void;
 }
-
-// Data dummy untuk demonstrasi
-const mockBarang: BarangType[] = [
-    {
-        id: 1,
-        kode: 'BRG-001',
-        nama: 'Laptop ProX 15',
-        kategori: 'Elektronik',
-        lokasi: 'Rak A-1',
-        stok: 25,
-        foto: 'https://placehold.co/40x40/E5E7EB/4B5563?text=LPX',
-    },
-    {
-        id: 2,
-        kode: 'BRG-002',
-        nama: 'Mouse Wireless Silent',
-        kategori: 'Aksesoris Komputer',
-        lokasi: 'Rak B-3',
-        stok: 150,
-        foto: 'https://placehold.co/40x40/E5E7EB/4B5563?text=MWS',
-    },
-    {
-        id: 3,
-        kode: 'BRG-003',
-        nama: 'Keyboard Mechanical RGB',
-        kategori: 'Aksesoris Komputer',
-        lokasi: 'Rak B-4',
-        stok: 75,
-        foto: 'https://placehold.co/40x40/E5E7EB/4B5563?text=KMR',
-    },
-    {
-        id: 4,
-        kode: 'BRG-004',
-        nama: 'Monitor Ultrawide 34"',
-        kategori: 'Elektronik',
-        lokasi: 'Rak A-2',
-        stok: 15,
-        foto: 'https://placehold.co/40x40/E5E7EB/4B5563?text=MUW',
-    },
-    {
-        id: 5,
-        kode: 'BRG-005',
-        nama: 'Kursi Gaming Ergonomis',
-        kategori: 'Furnitur',
-        lokasi: 'Gudang Belakang',
-        stok: 40,
-        foto: 'https://placehold.co/40x40/E5E7EB/4B5563?text=KGE',
-    },
-    {
-        id: 6,
-        kode: 'BRG-006',
-        nama: 'Webcam 4K Pro',
-        kategori: 'Aksesoris Komputer',
-        lokasi: 'Rak C-1',
-        stok: 90,
-        foto: 'https://placehold.co/40x40/E5E7EB/4B5563?text=W4K',
-    },
-];
-
 
 interface ItemDetailModalProps {
     item: BarangType | null;
@@ -125,8 +67,10 @@ const ItemDetailModal: React.FC<ItemDetailModalProps> = ({ item, onClose }) => {
                 <Card className="border-0">
                     <div className="flex flex-col md:flex-row">
                         <div className="md:w-1/2 p-6 flex items-center justify-center">
-                            <img src={item.foto} alt={`Foto ${item.nama}`} className="w-full h-auto max-h-[400px] object-contain rounded-lg" onError={(e) => { (e.target as HTMLImageElement).src = 'https://placehold.co/400x400/E5E7EB/4B5563?text=Error'; }} />
-                        </div>
+                            <img
+                                src={item.image_path ? `${item.image_path}` : 'https://placehold.co/400x400?text=NA'}
+                                alt={`Foto ${item.nama}`}
+                            />                        </div>
                         <div className="md:w-1/2 p-6 flex flex-col">
                             <CardHeader className="p-0">
                                 <CardTitle className="text-3xl">{item.nama}</CardTitle>
@@ -152,30 +96,44 @@ const ItemDetailModal: React.FC<ItemDetailModalProps> = ({ item, onClose }) => {
 };
 
 
+interface BarangType {
+    id: number;
+    kode: string;
+    nama: string;
+    kategori: string;
+    lokasi: string;
+    stok: number;
+    image_path: string | null;
+}
 
+type PageProps = {
+    list_barang: BarangType[];
+    // add other properties if needed
+};
 
 export default function Barang() {
-    const [openDropdownId, setOpenDropdownId] = React.useState<number | null>(null);
+    const { props } = usePage<PageProps>();
+    const listBarang = props.list_barang as BarangType[];
+
     const [selectedItem, setSelectedItem] = React.useState<BarangType | null>(null);
+    const [isAddSheetOpen, setIsAddSheetOpen] = React.useState(false);
+    const [openDropdownId, setOpenDropdownId] = React.useState<number | null>(null);
+
+    const handleOpenModal = (item: BarangType) => setSelectedItem(item);
+    const handleCloseModal = () => setSelectedItem(null);
 
     const toggleDropdown = (id: number) => {
-        console.log(`Toggling dropdown for item ID: ${id}`);
         setOpenDropdownId(openDropdownId === id ? null : id);
     };
-
-    const handleOpenModal = (item: BarangType) => {
-        setSelectedItem(item);
-    };
-
-    const handleCloseModal = () => {
-        setSelectedItem(null);
-    };
-
 
     return (
         <AppLayout >
             <Head title="Daftar Barang" />
             <ItemDetailModal item={selectedItem} onClose={handleCloseModal} />
+            <TambahBarangSheet
+                isOpen={isAddSheetOpen}
+                onClose={() => setIsAddSheetOpen(false)}
+            />
             <main className="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-0 md:gap-8 bg-gray-100 dark:bg-gray-900">
                 <Card>
                     <CardHeader>
@@ -191,7 +149,7 @@ export default function Barang() {
                                     <ListFilter className="h-3.5 w-3.5" />
                                     <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">Filter</span>
                                 </Button>
-                                <Button size="sm" className="h-8 gap-1">
+                                <Button size="sm" className="h-8 gap-1" onClick={() => setIsAddSheetOpen(true)}>
                                     <PlusCircle className="h-3.5 w-3.5" />
                                     <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">Tambah Barang</span>
                                 </Button>
@@ -213,11 +171,14 @@ export default function Barang() {
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
-                                    {mockBarang.map((item) => (
+                                    {listBarang.map((item) => (
                                         <TableRow key={item.id} onClick={() => handleOpenModal(item)}>
                                             <TableCell className="hidden sm:table-cell">
                                                 <Avatar className="h-9 w-9">
-                                                    <AvatarImage src={item.foto.replace('400x400', '40x40')} alt={`Foto ${item.nama}`} />
+                                                    <AvatarImage
+                                                        src={item.image_path ? `${item.image_path}` : 'https://placehold.co/40x40?text=NA'}
+                                                        alt={`Foto ${item.nama}`}
+                                                    />
                                                     <AvatarFallback>{item.nama.substring(0, 2).toUpperCase()}</AvatarFallback>
                                                 </Avatar>
                                             </TableCell>
@@ -233,8 +194,8 @@ export default function Barang() {
                                                             <Button aria-haspopup="true" size="icon" variant="ghost" onClick={() => toggleDropdown(item.id)}>
                                                                 <MoreHorizontal className="h-4 w-4" />
                                                                 <span className="sr-only">Toggle menu</span>
-                                                            </Button>                            
-                                                            </DropdownMenuTrigger>
+                                                            </Button>
+                                                        </DropdownMenuTrigger>
                                                         <DropdownMenuContent align="end">
                                                             <DropdownMenuLabel>Aksi</DropdownMenuLabel>
                                                             <DropdownMenuItem><Pencil className="mr-2 h-4 w-4" /><span>Edit</span></DropdownMenuItem>
@@ -250,7 +211,7 @@ export default function Barang() {
                         </div>
                     </CardContent>
                     <CardFooter>
-                        <div className="text-xs text-muted-foreground">Menampilkan <strong>1-{mockBarang.length}</strong> dari <strong>{mockBarang.length}</strong> produk</div>
+                        <div className="text-xs text-muted-foreground">Menampilkan <strong>1-{listBarang.length}</strong> dari <strong>{listBarang.length}</strong> produk</div>
                         <Pagination className="ml-auto">
                             <PaginationContent>
                                 <PaginationItem>
