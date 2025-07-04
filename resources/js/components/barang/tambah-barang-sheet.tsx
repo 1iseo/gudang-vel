@@ -1,9 +1,10 @@
 // File: resources/js/Pages/Barang/TambahBarangSheet.tsx
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
     Sheet,
     SheetClose,
@@ -18,13 +19,16 @@ import { useForm } from '@inertiajs/react';
 interface TambahBarangSheetProps {
     isOpen: boolean;
     onClose: () => void;
+    kategoriOptions: { id: number, nama: string }[];
 }
 
-export function TambahBarangSheet({ isOpen, onClose }: TambahBarangSheetProps) {
+export function TambahBarangSheet({ isOpen, onClose, kategoriOptions }: TambahBarangSheetProps) {
+
     const { data, setData, post, processing, errors, reset } = useForm({
         kode: '',
         nama: '',
         lokasi: '',
+        kategori_id: 1, // Default to Uncategorized
         stok: 0,
         image: null as File | null,
     });
@@ -122,6 +126,26 @@ export function TambahBarangSheet({ isOpen, onClose }: TambahBarangSheetProps) {
                             {errors.stok && (
                                 <p className="col-span-4 text-sm text-red-600 text-right">{errors.stok}</p>
                             )}
+                        </div>
+
+                        {/* Kategori */}
+                        <div className="grid grid-cols-4 items-center gap-4">
+                            <Label htmlFor="kategori_id" className="text-right">
+                                Kategori
+                            </Label>
+                            <Select onValueChange={(value) => setData('kategori_id', parseInt(value))}>
+                                <SelectTrigger id="kategori_id" className="col-span-3">
+                                    {/* Optional: show selected value or placeholder */}
+                                    <SelectValue placeholder="Pilih kategori" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {kategoriOptions.map((kat) => (
+                                        <SelectItem key={kat.id} value={kat.id.toString()}>
+                                            {kat.nama}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
                         </div>
 
                         {/* Gambar */}

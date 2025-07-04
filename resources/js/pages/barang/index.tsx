@@ -1,32 +1,33 @@
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import AppLayout from '@/layouts/app-layout';
-import { BreadcrumbItem } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Pagination, PaginationContent, PaginationItem } from '@/components/ui/pagination';
+import { Pagination, PaginationContent, PaginationItem, PaginationLink } from '@/components/ui/pagination';
 import { Badge } from '@/components/ui/badge';
 import { Head, useForm, usePage } from '@inertiajs/react';
-import { Avatar, AvatarImage, AvatarFallback } from '@radix-ui/react-avatar';
-import { DropdownMenuContent, DropdownMenuLabel, DropdownMenuItem, DropdownMenu } from '@/components/ui/dropdown-menu';
-import { Search, ListFilter, PlusCircle, MoreHorizontal, Pencil, Trash2, ChevronLeft, ChevronRight, X } from 'lucide-react';
-import React from 'react';
-import { DropdownMenuTrigger } from '@radix-ui/react-dropdown-menu';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'; // Using shadcn Avatar for consistency
+import { DropdownMenuContent, DropdownMenuLabel, DropdownMenuItem, DropdownMenu, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
+import { Search, PlusCircle, MoreHorizontal, Pencil, Trash2, X, Check, ChevronsUpDown } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
 import { TambahBarangSheet } from '@/components/barang/tambah-barang-sheet';
+import { cn } from '@/lib/utils';
+
+interface KategoriType {
+    id: number;
+    nama: string;
+}
 
 interface BarangType {
     id: number;
     kode: string;
     nama: string;
-    kategori: string;
+    kategori: KategoriType;
     lokasi: string;
     stok: number;
-    foto: string;
-}
-
-interface ItemDetailModalProps {
-    item: BarangType | null;
-    onClose: () => void;
+    image_path: string | null;
 }
 
 interface ItemDetailModalProps {
@@ -38,9 +39,8 @@ const ItemDetailModal: React.FC<ItemDetailModalProps> = ({ item, onClose }) => {
     const [isShowing, setIsShowing] = React.useState(false);
 
     React.useEffect(() => {
-        // Tampilkan modal dengan transisi saat 'item' ada
         if (item) {
-            const timer = setTimeout(() => setIsShowing(true), 10); // Delay kecil untuk memastikan transisi berjalan
+            const timer = setTimeout(() => setIsShowing(true), 10);
             return () => clearTimeout(timer);
         } else {
             setIsShowing(false);
@@ -49,8 +49,7 @@ const ItemDetailModal: React.FC<ItemDetailModalProps> = ({ item, onClose }) => {
 
     const handleClose = () => {
         setIsShowing(false);
-        // Tunggu transisi selesai sebelum memanggil onClose
-        setTimeout(onClose, 200); // Durasi harus cocok dengan durasi transisi
+        setTimeout(onClose, 200);
     };
 
     if (!item) return null;
@@ -70,7 +69,9 @@ const ItemDetailModal: React.FC<ItemDetailModalProps> = ({ item, onClose }) => {
                             <img
                                 src={item.image_path ? `${item.image_path}` : 'https://placehold.co/400x400?text=NA'}
                                 alt={`Foto ${item.nama}`}
-                            />                        </div>
+                                className="rounded-lg object-cover"
+                            />
+                        </div>
                         <div className="md:w-1/2 p-6 flex flex-col">
                             <CardHeader className="p-0">
                                 <CardTitle className="text-3xl">{item.nama}</CardTitle>
@@ -78,10 +79,9 @@ const ItemDetailModal: React.FC<ItemDetailModalProps> = ({ item, onClose }) => {
                             </CardHeader>
                             <CardContent className="p-0 pt-4 flex-grow">
                                 <div className="space-y-3 text-base">
-                                    <div><strong>Kategori:</strong> <Badge variant="outline">{item.kategori}</Badge></div>
+                                    <div><strong>Kategori:</strong> <Badge variant="outline">{item.kategori.nama}</Badge></div>
                                     <div><strong>Lokasi:</strong> {item.lokasi}</div>
                                     <div><strong>Stok Saat Ini:</strong> <span>{item.stok}</span> unit</div>
-                                    {/* <p className="text-muted-foreground pt-2 text-sm">{item.deskripsi}</p> */}
                                 </div>
                             </CardContent>
                         </div>
@@ -95,46 +95,63 @@ const ItemDetailModal: React.FC<ItemDetailModalProps> = ({ item, onClose }) => {
     );
 };
 
-
-interface BarangType {
-    id: number;
-    kode: string;
-    nama: string;
-    kategori: string;
-    lokasi: string;
-    stok: number;
-    image_path: string | null;
+interface PaginatedBarang {
+    data: BarangType[];
+    links: { url: string | null; label: string; active: boolean }[];
+    from: number;
+    to: number;
+    total: number;
+    current_page: number;
+    last_page: number;
+    prev_page_url: string | null;
+    next_page_url: string | null;
 }
 
 type PageProps = {
-    list_barang: BarangType[];
-    // add other properties if needed
+    list_barang: PaginatedBarang;
+    filters: { search: string; kategori: string };
+    kategoriOptions: KategoriType[];
 };
 
 export default function Barang() {
-    const { props } = usePage<PageProps>();
-    const listBarang = props.list_barang as BarangType[];
+    const { list_barang, filters, kategoriOptions } = usePage<PageProps>().props;
 
-    const [selectedItem, setSelectedItem] = React.useState<BarangType | null>(null);
-    const [isAddSheetOpen, setIsAddSheetOpen] = React.useState(false);
-    const [openDropdownId, setOpenDropdownId] = React.useState<number | null>(null);
+    const [selectedItem, setSelectedItem] = useState<BarangType | null>(null);
+    const [isAddSheetOpen, setIsAddSheetOpen] = useState(false);
+    const [isFilterOpen, setFilterOpen] = useState(false); // State for the filter popover
+
+    const { data, setData, get, processing } = useForm({
+        search: filters.search || '',
+        kategori: filters.kategori || '',
+    });
+
+    // Debounce effect for search and filter changes
+    useEffect(() => {
+        const timeout = setTimeout(() => {
+            get(route('barang.index'), {
+                preserveState: true,
+                preserveScroll: true,
+                replace: true,
+            });
+        }, 300);
+
+        return () => clearTimeout(timeout);
+    }, [data.search, data.kategori]);
 
     const handleOpenModal = (item: BarangType) => setSelectedItem(item);
     const handleCloseModal = () => setSelectedItem(null);
 
-    const toggleDropdown = (id: number) => {
-        setOpenDropdownId(openDropdownId === id ? null : id);
-    };
-
     return (
-        <AppLayout >
+        <AppLayout>
             <Head title="Daftar Barang" />
             <ItemDetailModal item={selectedItem} onClose={handleCloseModal} />
             <TambahBarangSheet
                 isOpen={isAddSheetOpen}
                 onClose={() => setIsAddSheetOpen(false)}
+                kategoriOptions={kategoriOptions}
             />
-            <main className="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-0 md:gap-8 bg-gray-100 dark:bg-gray-900">
+
+            <main className="flex h-full flex-1 flex-col gap-4 rounded-xl p-4 overflow-x-auto">
                 <Card>
                     <CardHeader>
                         <CardTitle>Daftar Barang</CardTitle>
@@ -142,13 +159,86 @@ export default function Barang() {
                         <div className="mt-4 flex items-center gap-2">
                             <div className="relative flex-1">
                                 <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                                <Input type="search" placeholder="Cari barang berdasarkan nama atau kode..." className="w-full rounded-lg bg-background pl-8 md:w-[320px]" />
+                                <Input
+                                    type="search"
+                                    placeholder="Cari barang berdasarkan nama atau kode..."
+                                    className="w-full rounded-lg bg-background pl-8 md:w-[320px]"
+                                    value={data.search}
+                                    onChange={(e) => setData('search', e.target.value)}
+                                />
                             </div>
                             <div className="ml-auto flex items-center gap-2">
-                                <Button size="sm" variant="outline" className="h-8 gap-1">
-                                    <ListFilter className="h-3.5 w-3.5" />
-                                    <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">Filter</span>
-                                </Button>
+                                {/* == NEW SEARCHABLE CATEGORY FILTER (COMBOBOX) == */}
+                                <Popover open={isFilterOpen} onOpenChange={setFilterOpen}>
+                                    <PopoverTrigger asChild>
+                                        <Button
+                                            variant="outline"
+                                            role="combobox"
+                                            aria-expanded={isFilterOpen}
+                                            className="w-[200px] justify-between h-8"
+                                        >
+                                            {data.kategori
+                                                ? kategoriOptions.find((kat) => kat.nama.toLowerCase() === data.kategori.toLowerCase())?.nama
+                                                : "Filter Kategori"}
+                                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                        </Button>
+                                    </PopoverTrigger>
+                                    <PopoverContent className="w-[200px] p-0">
+                                        <Command>
+                                            <CommandInput placeholder="Cari kategori..." />
+                                            <CommandList>
+                                                <CommandEmpty>Kategori tidak ditemukan.</CommandEmpty>
+                                                <CommandGroup>
+                                                    <CommandItem
+                                                        key="all-kategori"
+                                                        value=""
+                                                        onSelect={() => {
+                                                            setData('kategori', '');
+                                                            setFilterOpen(false);
+                                                        }}
+                                                    >
+                                                        <Check
+                                                            className={cn(
+                                                                "mr-2 h-4 w-4",
+                                                                data.kategori === '' ? "opacity-100" : "opacity-0"
+                                                            )}
+                                                        />
+                                                        Semua Kategori
+                                                    </CommandItem>
+                                                    {kategoriOptions.map((kat) => (
+                                                        <CommandItem
+                                                            key={kat.id}
+                                                            value={kat.nama}
+                                                            onSelect={(currentValue) => {
+                                                                setData('kategori', currentValue === data.kategori ? '' : currentValue);
+                                                                setFilterOpen(false);
+                                                            }}
+                                                        >
+                                                            <Check
+                                                                className={cn(
+                                                                    "mr-2 h-4 w-4",
+                                                                    data.kategori.toLowerCase() === kat.nama.toLowerCase() ? "opacity-100" : "opacity-0"
+                                                                )}
+                                                            />
+                                                            {kat.nama}
+                                                        </CommandItem>
+                                                    ))}
+                                                </CommandGroup>
+                                            </CommandList>
+                                        </Command>
+                                    </PopoverContent>
+                                </Popover>
+                                {data.kategori && (
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="h-8 w-8"
+                                        onClick={() => setData('kategori', '')}
+                                    >
+                                        <X className="h-4 w-4" />
+                                        <span className="sr-only">Clear Kategori Filter</span>
+                                    </Button>
+                                )}
                                 <Button size="sm" className="h-8 gap-1" onClick={() => setIsAddSheetOpen(true)}>
                                     <PlusCircle className="h-3.5 w-3.5" />
                                     <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">Tambah Barang</span>
@@ -171,8 +261,8 @@ export default function Barang() {
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
-                                    {listBarang.map((item) => (
-                                        <TableRow key={item.id} onClick={() => handleOpenModal(item)}>
+                                    {list_barang.data.map((item) => (
+                                        <TableRow key={item.id} onClick={() => handleOpenModal(item)} className="cursor-pointer">
                                             <TableCell className="hidden sm:table-cell">
                                                 <Avatar className="h-9 w-9">
                                                     <AvatarImage
@@ -184,25 +274,29 @@ export default function Barang() {
                                             </TableCell>
                                             <TableCell className="font-medium">{item.kode}</TableCell>
                                             <TableCell>{item.nama}</TableCell>
-                                            <TableCell><Badge variant="outline">{item.kategori}</Badge></TableCell>
+                                            <TableCell><Badge variant="outline">{item.kategori.nama}</Badge></TableCell>
                                             <TableCell>{item.lokasi}</TableCell>
                                             <TableCell className="text-right">{item.stok}</TableCell>
                                             <TableCell onClick={(e) => e.stopPropagation()}>
-                                                <div className="relative">
-                                                    <DropdownMenu>
-                                                        <DropdownMenuTrigger asChild>
-                                                            <Button aria-haspopup="true" size="icon" variant="ghost" onClick={() => toggleDropdown(item.id)}>
-                                                                <MoreHorizontal className="h-4 w-4" />
-                                                                <span className="sr-only">Toggle menu</span>
-                                                            </Button>
-                                                        </DropdownMenuTrigger>
-                                                        <DropdownMenuContent align="end">
-                                                            <DropdownMenuLabel>Aksi</DropdownMenuLabel>
-                                                            <DropdownMenuItem><Pencil className="mr-2 h-4 w-4" /><span>Edit</span></DropdownMenuItem>
-                                                            <DropdownMenuItem className="text-red-600 focus:text-red-600 focus:bg-red-100"><Trash2 className="mr-2 h-4 w-4" /><span>Hapus</span></DropdownMenuItem>
-                                                        </DropdownMenuContent>
-                                                    </DropdownMenu>
-                                                </div>
+                                                <DropdownMenu>
+                                                    <DropdownMenuTrigger asChild>
+                                                        <Button aria-haspopup="true" size="icon" variant="ghost">
+                                                            <MoreHorizontal className="h-4 w-4" />
+                                                            <span className="sr-only">Toggle menu</span>
+                                                        </Button>
+                                                    </DropdownMenuTrigger>
+                                                    <DropdownMenuContent align="end">
+                                                        <DropdownMenuLabel>Aksi</DropdownMenuLabel>
+                                                        <DropdownMenuItem>
+                                                            <Pencil className="mr-2 h-4 w-4" />
+                                                            <span>Edit</span>
+                                                        </DropdownMenuItem>
+                                                        <DropdownMenuItem className="text-red-600 focus:text-red-600 focus:bg-red-100">
+                                                            <Trash2 className="mr-2 h-4 w-4" />
+                                                            <span>Hapus</span>
+                                                        </DropdownMenuItem>
+                                                    </DropdownMenuContent>
+                                                </DropdownMenu>
                                             </TableCell>
                                         </TableRow>
                                     ))}
@@ -210,22 +304,29 @@ export default function Barang() {
                             </Table>
                         </div>
                     </CardContent>
-                    <CardFooter>
-                        <div className="text-xs text-muted-foreground">Menampilkan <strong>1-{listBarang.length}</strong> dari <strong>{listBarang.length}</strong> produk</div>
+                    <CardFooter className="flex items-center justify-between">
+                        <div className="text-xs text-muted-foreground">
+                            Menampilkan <strong>{list_barang.from}-{list_barang.to}</strong> dari <strong>{list_barang.total}</strong> produk
+                        </div>
                         <Pagination className="ml-auto">
                             <PaginationContent>
-                                <PaginationItem>
-                                    <Button size="icon" variant="outline" className="h-8 w-8"><ChevronLeft className="h-4 w-4" /><span className="sr-only">Halaman Sebelumnya</span></Button>
-                                </PaginationItem>
-                                <PaginationItem>
-                                    <Button size="icon" variant="outline" className="h-8 w-8"><ChevronRight className="h-4 w-4" /><span className="sr-only">Halaman Berikutnya</span></Button>
-                                </PaginationItem>
+                                {list_barang.links.map((link, index) => (
+                                    <PaginationItem key={index} >
+                                        <PaginationLink
+                                            href={link.url || '#'}
+                                            preserveScroll
+                                            preserveState
+                                            className={!link.url ? 'pointer-events-none text-muted-foreground' : ''}
+                                        >
+                                            <span dangerouslySetInnerHTML={{ __html: link.label }} />
+                                        </PaginationLink>
+                                    </PaginationItem>
+                                ))}
                             </PaginationContent>
                         </Pagination>
                     </CardFooter>
                 </Card>
             </main>
         </AppLayout>
-
     );
 }

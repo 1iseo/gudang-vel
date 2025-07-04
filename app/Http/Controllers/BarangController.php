@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Barang;
+use App\Models\Kategori;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
@@ -12,11 +13,36 @@ class BarangController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $list_barang = Barang::all();
+        $query = Barang::query(); // Kita tidak perlu 'with' di sini karena sudah ada di properti model '$with'
+
+        // Terapkan filter pencarian (ini tetap sama)
+        $query->when($request->input('search'), function ($q, $search) {
+            $q->where(function ($subQuery) use ($search) {
+                $subQuery->where('nama', 'like', "%{$search}%")
+                    ->orWhere('kode', 'like', "%{$search}%");
+            });
+        });
+
+        // Terapkan filter kategori yang lebih sederhana
+        $query->when($request->input('kategori'), function ($q, $kategori) {
+            // Langsung filter pada kolom 'kategori' di tabel 'barang'.
+            // Ini lebih efisien daripada 'whereHas'.
+            $q->where('kategori', $kategori);
+        });
+
+        // Ambil hasil setelah filter dengan paginasi
+        $list_barang = $query->orderBy('created_at', 'desc')
+            ->paginate(10)
+            ->withQueryString();
+
+        $kategoriOptions = Kategori::all(['id', 'nama']);
+
         return Inertia::render('barang/index', [
             'list_barang' => $list_barang,
+            'filters' => $request->only(['search', 'kategori']),
+            'kategoriOptions' => $kategoriOptions,
         ]);
     }
 
@@ -26,14 +52,22 @@ class BarangController extends Controller
 
     public function store(Request $request)
     {
+        // Jika kategori_id tidak diisi, set ke 1 (Uncategorized)
+        // NOTE: Pastikan sudah seeding
+        if ($request->input('kategori_id') === null) {
+            $request->merge(['kategori_id' => 1]);
+        }
+
         $validated = $request->validate([
             'kode' => 'required|string|unique:barang,kode',
-            'nama' => 'required|string',
-            'stok' => 'required|integer|min:0',
-            'lokasi' => 'required|string',
-            'image' => 'nullable|image|mimes:jpg,jpeg,png|max:2048', // Max 2MB
+            'nama' => 'required|string|max:255',
+            'kategori_id' => 'required|exists:kategori,id',
+            'lokasi' => 'nullable|string',
+            'stok' => 'nullable|integer|min:0',
+            'image' => 'nullable|image|max:2048',
         ]);
-
+        
+        
         // Handle upload jika ada gambarnya
         $imagePath = null;
         if ($request->hasFile('image')) {
@@ -55,7 +89,7 @@ class BarangController extends Controller
             'nama' => $validated['nama'],
             'stok' => $validated['stok'],
             'lokasi' => $validated['lokasi'],
-            'kategori' => 'Aksesoris',
+            'kategori_id' => $validated['kategori_id'],
             'image_path' => $imagePath,
         ]);
 
