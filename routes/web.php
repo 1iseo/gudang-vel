@@ -21,8 +21,8 @@ Route::controller(BarangController::class)->group(function() {
     Route::post('/barang', 'store')->name('barang.store');
     // Route::get('/barang/{barang}', 'show')->name('barang.show');
     // Route::get('/barang/{barang}/edit', 'edit')->name('barang.edit');
-    // Route::put('/barang/{barang}', 'update')->name('barang.update');
-    // Route::delete('/barang/{barang}', 'destroy')->name('barang.destroy');
+    Route::put('/barang/{barang}', 'update')->name('barang.update');
+    Route::delete('/barang/{barang}', 'destroy')->name('barang.destroy');
 });
 
 Route::controller(KategoriController::class)->group(function() {

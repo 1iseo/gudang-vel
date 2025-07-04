@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Pagination, PaginationContent, PaginationItem, PaginationLink } from '@/components/ui/pagination';
 import { Badge } from '@/components/ui/badge';
-import { Head, useForm, usePage } from '@inertiajs/react';
+import { Head, router, useForm, usePage } from '@inertiajs/react';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'; // Using shadcn Avatar for consistency
 import { DropdownMenuContent, DropdownMenuLabel, DropdownMenuItem, DropdownMenu, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -14,6 +14,8 @@ import { Search, PlusCircle, MoreHorizontal, Pencil, Trash2, X, Check, ChevronsU
 import React, { useEffect, useState } from 'react';
 import { TambahBarangSheet } from '@/components/barang/tambah-barang-sheet';
 import { cn } from '@/lib/utils';
+import { EditBarangSheet } from '@/components/barang/edit-barang-sheet';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 
 interface KategoriType {
     id: number;
@@ -118,14 +120,16 @@ export default function Barang() {
 
     const [selectedItem, setSelectedItem] = useState<BarangType | null>(null);
     const [isAddSheetOpen, setIsAddSheetOpen] = useState(false);
-    const [isFilterOpen, setFilterOpen] = useState(false); // State for the filter popover
+    const [isFilterOpen, setFilterOpen] = useState(false);
 
-    const { data, setData, get, processing } = useForm({
+    const [editingBarang, setEditingBarang] = useState<BarangType | null>(null);
+    const [deletingBarang, setDeletingBarang] = useState<BarangType | null>(null);
+
+    const { data, setData, get } = useForm({
         search: filters.search || '',
         kategori: filters.kategori || '',
     });
 
-    // Debounce effect for search and filter changes
     useEffect(() => {
         const timeout = setTimeout(() => {
             get(route('barang.index'), {
@@ -141,6 +145,14 @@ export default function Barang() {
     const handleOpenModal = (item: BarangType) => setSelectedItem(item);
     const handleCloseModal = () => setSelectedItem(null);
 
+    const handleDelete = () => {
+        if (!deletingBarang) return;
+        router.delete(route('barang.destroy', deletingBarang.id), {
+            onSuccess: () => setDeletingBarang(null),
+            preserveScroll: true,
+        });
+    };
+
     return (
         <AppLayout>
             <Head title="Daftar Barang" />
@@ -148,6 +160,12 @@ export default function Barang() {
             <TambahBarangSheet
                 isOpen={isAddSheetOpen}
                 onClose={() => setIsAddSheetOpen(false)}
+                kategoriOptions={kategoriOptions}
+            />
+            <EditBarangSheet
+                isOpen={!!editingBarang}
+                onClose={() => setEditingBarang(null)}
+                barang={editingBarang}
                 kategoriOptions={kategoriOptions}
             />
 
@@ -287,11 +305,14 @@ export default function Barang() {
                                                     </DropdownMenuTrigger>
                                                     <DropdownMenuContent align="end">
                                                         <DropdownMenuLabel>Aksi</DropdownMenuLabel>
-                                                        <DropdownMenuItem>
+                                                        <DropdownMenuItem onSelect={() => setTimeout(() => setEditingBarang(item), 50)}>
                                                             <Pencil className="mr-2 h-4 w-4" />
                                                             <span>Edit</span>
                                                         </DropdownMenuItem>
-                                                        <DropdownMenuItem className="text-red-600 focus:text-red-600 focus:bg-red-100">
+                                                        <DropdownMenuItem
+                                                            className="text-red-600 focus:text-red-600 focus:bg-red-100"
+                                                            onSelect={() => setTimeout(() => setDeletingBarang(item), 50)}
+                                                        >
                                                             <Trash2 className="mr-2 h-4 w-4" />
                                                             <span>Hapus</span>
                                                         </DropdownMenuItem>
@@ -327,6 +348,27 @@ export default function Barang() {
                     </CardFooter>
                 </Card>
             </main>
+            <AlertDialog open={!!deletingBarang} onOpenChange={() => setDeletingBarang(null)}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Apakah Anda Yakin?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            Tindakan ini akan menghapus barang
+                            <span className="font-semibold"> "{deletingBarang?.nama}"</span> secara permanen.
+                            Data yang sudah dihapus tidak dapat dikembalikan.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Batal</AlertDialogCancel>
+                        <AlertDialogAction
+                            onClick={handleDelete}
+                            className="bg-red-600 hover:bg-red-700"
+                        >
+                            Ya, Hapus
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </AppLayout>
     );
 }

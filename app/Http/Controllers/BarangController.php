@@ -112,19 +112,41 @@ class BarangController extends Controller
         //
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(Request $request, Barang $barang)
     {
-        //
+        $request->validate([
+            'nama' => 'required|string|max:255',
+            'kode' => 'required|string|max:255|unique:barang,kode,' . $barang->id,
+            'kategori_id' => 'required|exists:kategori,id',
+            'lokasi' => 'nullable|string|max:255',
+            'stok' => 'required|integer|min:0',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
+        ]);
+
+        $barang->fill($request->except('image'));
+
+        if ($request->hasFile('image')) {
+            $image = $request->file('image');
+            $filename = Str::uuid() . '.' . $image->getClientOriginalExtension();
+            $destinationPath = public_path('barang-images');
+            $image->move($destinationPath, $filename);
+            $barang->image_path = 'barang-images/' . $filename;
+        }
+
+        $barang->save();
+
+        return redirect()->route('barang.index')->with('message', 'Barang berhasil diperbarui.');
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(Barang $barang)
     {
-        //
+        // Hapus gambar dari folder public jika ada
+        if ($barang->image_path && file_exists(public_path($barang->image_path))) {
+            unlink(public_path($barang->image_path));
+        }
+
+        $barang->delete();
+
+        return redirect()->route('barang.index')->with('message', 'Barang berhasil dihapus.');
     }
 }
