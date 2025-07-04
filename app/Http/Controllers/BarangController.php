@@ -25,11 +25,10 @@ class BarangController extends Controller
             });
         });
 
-        // Terapkan filter kategori yang lebih sederhana
-        $query->when($request->input('kategori'), function ($q, $kategori) {
-            // Langsung filter pada kolom 'kategori' di tabel 'barang'.
-            // Ini lebih efisien daripada 'whereHas'.
-            $q->where('kategori', $kategori);
+        $query->when($request->kategori, function ($query, $namaKategori) {
+            $query->whereHas('kategori', function ($q) use ($namaKategori) {
+                $q->where('nama', $namaKategori);
+            });
         });
 
         // Ambil hasil setelah filter dengan paginasi
@@ -66,8 +65,8 @@ class BarangController extends Controller
             'stok' => 'nullable|integer|min:0',
             'image' => 'nullable|image|max:2048',
         ]);
-        
-        
+
+
         // Handle upload jika ada gambarnya
         $imagePath = null;
         if ($request->hasFile('image')) {
