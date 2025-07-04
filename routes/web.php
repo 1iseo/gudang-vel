@@ -28,6 +28,8 @@ Route::controller(BarangController::class)->group(function() {
 Route::controller(KategoriController::class)->group(function() {
     Route::get('/kategori', 'index')->name('kategori.index');
     Route::post('/kategori', 'store')->name('kategori.store');
+    Route::put('/kategori/{kategori}', 'update')->name('kategori.update');
+    Route::delete('/kategori/{kategori}', 'destroy')->name('kategori.destroy');
 });
 
 
