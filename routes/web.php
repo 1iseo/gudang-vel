@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\BarangController;
+use App\Http\Controllers\KategoriController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -24,6 +25,10 @@ Route::controller(BarangController::class)->group(function() {
     // Route::delete('/barang/{barang}', 'destroy')->name('barang.destroy');
 });
 
+Route::controller(KategoriController::class)->group(function() {
+    Route::get('/kategori', 'index')->name('kategori.index');
+    Route::post('/kategori', 'store')->name('kategori.store');
+});
 
 
 require __DIR__.'/settings.php';

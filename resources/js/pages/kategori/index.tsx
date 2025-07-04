@@ -10,6 +10,11 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
+interface KategoriType {
+    id: number;
+    nama: string;
+}
+
 export default function Kategori() {
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
