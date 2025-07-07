@@ -69,7 +69,7 @@ const ItemDetailModal: React.FC<ItemDetailModalProps> = ({ item, onClose }) => {
                             <CardContent className="p-0 pt-4 flex-grow">
                                 <div className="space-y-3 text-base">
                                     <div><strong>Kategori:</strong> <Badge variant="outline">{item.kategori.nama}</Badge></div>
-                                    <div><strong>Lokasi:</strong> {item.lokasi}</div>
+                                    <div><strong>Lokasi:</strong> {item.lokasi.nama}</div>
                                     <div><strong>Stok Saat Ini:</strong> <span>{item.stok}</span> unit</div>
                                 </div>
                             </CardContent>
@@ -106,7 +106,7 @@ type PageProps = {
 };
 
 export default function Barang() {
-    const { list_barang, filters, kategoriOptions } = usePage<PageProps>().props;
+    const { list_barang, filters, kategoriOptions, lokasiOptions } = usePage<PageProps>().props;
 
     const [selectedItem, setSelectedItem] = useState<BarangType | null>(null);
     const [isAddSheetOpen, setIsAddSheetOpen] = useState(false);
@@ -161,12 +161,14 @@ export default function Barang() {
                 isOpen={isAddSheetOpen}
                 onClose={() => setIsAddSheetOpen(false)}
                 kategoriOptions={kategoriOptions}
+                lokasiOptions={lokasiOptions}
             />
             <EditBarangSheet
                 isOpen={!!editingBarang}
                 onClose={() => setEditingBarang(null)}
                 barang={editingBarang}
                 kategoriOptions={kategoriOptions}
+                lokasiOptions={lokasiOptions}
             />
             <StokActionSheet
                 isOpen={!!stokAction.barang}
@@ -298,7 +300,7 @@ export default function Barang() {
                                             <TableCell className="font-medium">{item.kode}</TableCell>
                                             <TableCell>{item.nama}</TableCell>
                                             <TableCell><Badge variant="outline">{item.kategori.nama}</Badge></TableCell>
-                                            <TableCell>{item.lokasi}</TableCell>
+                                            <TableCell>{item.lokasi.nama}</TableCell>
                                             <TableCell className="text-right">{item.stok}</TableCell>
                                             <TableCell onClick={(e) => e.stopPropagation()}>
                                                 <DropdownMenu>

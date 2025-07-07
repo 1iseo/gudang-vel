@@ -13,21 +13,12 @@ import {
     SheetHeader,
     SheetTitle,
 } from '@/components/ui/sheet';
-import { Kategori, Lokasi } from '@/types';
-
-interface BarangType {
-    id: number;
-    kode: string;
-    nama: string;
-    kategori: KategoriType;
-    lokasi: string;
-    stok: number;
-}
+import { Barang, Kategori, Lokasi } from '@/types';
 
 interface EditBarangSheetProps {
     isOpen: boolean;
     onClose: () => void;
-    barang: BarangType | null;
+    barang: Barang | null;
     kategoriOptions: Kategori[];
     lokasiOptions: Lokasi[];
 }
@@ -51,7 +42,7 @@ export const EditBarangSheet: React.FC<EditBarangSheetProps> = ({ isOpen, onClos
                 nama: barang.nama,
                 kode: barang.kode,
                 kategori_id: barang.kategori.id.toString(),
-                lokasi: barang.lokasi,
+                lokasi: barang.lokasi.id.toString(),
                 stok: barang.stok,
                 image: null,
             });

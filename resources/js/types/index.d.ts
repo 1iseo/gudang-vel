@@ -55,7 +55,8 @@ export interface Barang {
     kode: string;
     nama: string;
     stok: number;
-    lokasi: string;
+    lokasi_id: number;
+    lokasi: Lokasi;
     kategori_id: number;
     image_path: string;
     kategori: Kategori;

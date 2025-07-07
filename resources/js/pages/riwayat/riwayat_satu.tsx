@@ -38,7 +38,7 @@ export default function RiwayatSatu({ barang, riwayat }: RiwayatProps) {
                                 <h2 className="text-2xl font-bold">{barang.nama}</h2>
                                 <p className="text-muted-foreground">Kode: {barang.kode}</p>
                                 <p className="text-muted-foreground">Kategori: <Badge variant="outline">{barang.kategori.nama}</Badge></p>
-                                <p className="text-muted-foreground">Lokasi: {barang.lokasi}</p>
+                                <p className="text-muted-foreground">Lokasi: {barang.lokasi.nama}</p>
                                 <p className="text-muted-foreground">Stok saat ini: <span className="font-semibold">{barang.stok}</span> unit</p>
                             </div>
                         </div>
