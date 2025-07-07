@@ -22,6 +22,11 @@ const mainNavItems: NavItem[] = [
         title: 'Kategori',
         href: '/kategori',
         icon: Folder,
+    },
+    {
+        title: 'Riwayat',
+        href: '/riwayat',
+        icon: BookOpen,
     }
 
 ];

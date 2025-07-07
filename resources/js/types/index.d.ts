@@ -42,3 +42,36 @@ export interface User {
     updated_at: string;
     [key: string]: unknown; // This allows for additional properties...
 }
+
+export interface Kategori {
+    id: number;
+    nama: string;
+    created_at: string;
+    updated_at: string;
+}
+
+export interface Barang {
+    id: number;
+    kode: string;
+    nama: string;
+    stok: number;
+    lokasi: string;
+    kategori_id: number;
+    image_path: string;
+    kategori: Kategori;
+    created_at: string;
+    updated_at: string;
+}
+
+export interface RiwayatBarang {
+    id: number;
+    barang_id: number;
+    user_id: number;
+    tipe: 'in' | 'out';
+    jumlah: number;
+    keterangan: string;
+    user: User;
+    created_at: string;
+    updated_at: string;
+    barang: Barang;
+}

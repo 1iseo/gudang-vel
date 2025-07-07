@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\BarangController;
 use App\Http\Controllers\KategoriController;
+use App\Http\Controllers\StokController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -23,6 +24,13 @@ Route::controller(BarangController::class)->group(function() {
     // Route::get('/barang/{barang}/edit', 'edit')->name('barang.edit');
     Route::put('/barang/{barang}', 'update')->name('barang.update');
     Route::delete('/barang/{barang}', 'destroy')->name('barang.destroy');
+});
+
+Route::controller(StokController::class)->group(function() {
+    Route::get('/riwayat', 'index')->name('riwayat.index');
+    Route::get('/riwayat/{barang}', 'history')->name('barang.history');
+    Route::post('/barang/{barang}/stock-in', 'stockIn')->name('barang.stock-in');
+    Route::post('/barang/{barang}/stock-out', 'stockOut')->name('barang.stock-out');
 });
 
 Route::controller(KategoriController::class)->group(function() {

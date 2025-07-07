@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Barang;
 use App\Models\Kategori;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
 
@@ -83,14 +84,25 @@ class BarangController extends Controller
             $imagePath = 'barang-images/' . $filename;
         }
 
-        Barang::create([
-            'kode' => $validated['kode'],
-            'nama' => $validated['nama'],
-            'stok' => $validated['stok'],
-            'lokasi' => $validated['lokasi'],
-            'kategori_id' => $validated['kategori_id'],
-            'image_path' => $imagePath,
-        ]);
+        DB::transaction(function () use ($validated, $imagePath, $request) {
+            $barang = Barang::create([
+                'kode' => $validated['kode'],
+                'nama' => $validated['nama'],
+                'stok' => $validated['stok'] ?? 0,
+                'lokasi' => $validated['lokasi'],
+                'kategori_id' => $validated['kategori_id'],
+                'image_path' => $imagePath,
+            ]);
+
+            if ($barang->stok > 0) {
+                $barang->riwayat()->create([
+                    'user_id' => $request->user()->id,
+                    'tipe' => 'in',
+                    'jumlah' => $barang->stok,
+                    'keterangan' => 'Stok awal',
+                ]);
+            }
+        });
 
         return redirect()->back()->with('success', 'Barang berhasil disimpan.');
     }

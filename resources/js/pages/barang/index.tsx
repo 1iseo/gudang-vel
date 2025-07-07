@@ -5,32 +5,19 @@ import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Pagination, PaginationContent, PaginationItem, PaginationLink } from '@/components/ui/pagination';
 import { Badge } from '@/components/ui/badge';
-import { Head, router, useForm, usePage } from '@inertiajs/react';
+import { Head, router, useForm, usePage, Link } from '@inertiajs/react';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'; // Using shadcn Avatar for consistency
 import { DropdownMenuContent, DropdownMenuLabel, DropdownMenuItem, DropdownMenu, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
-import { Search, PlusCircle, MoreHorizontal, Pencil, Trash2, X, Check, ChevronsUpDown } from 'lucide-react';
+import { Search, PlusCircle, MoreHorizontal, Pencil, Trash2, X, Check, ChevronsUpDown, ArrowRightLeft, History, ArrowUp, ArrowDown } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 import { TambahBarangSheet } from '@/components/barang/tambah-barang-sheet';
 import { cn } from '@/lib/utils';
 import { EditBarangSheet } from '@/components/barang/edit-barang-sheet';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
-
-interface KategoriType {
-    id: number;
-    nama: string;
-}
-
-interface BarangType {
-    id: number;
-    kode: string;
-    nama: string;
-    kategori: KategoriType;
-    lokasi: string;
-    stok: number;
-    image_path: string | null;
-}
+import { StokActionSheet } from '@/components/barang/stok-action-sheet';
+import { Barang as BarangType, Kategori as KategoriType } from '@/types';
 
 interface ItemDetailModalProps {
     item: BarangType | null;
@@ -125,6 +112,8 @@ export default function Barang() {
     const [editingBarang, setEditingBarang] = useState<BarangType | null>(null);
     const [deletingBarang, setDeletingBarang] = useState<BarangType | null>(null);
 
+    const [stokAction, setStokAction] = useState<{ barang: BarangType | null; type: 'in' | 'out' }>({ barang: null, type: 'in' });
+
     const { data, setData, get } = useForm({
         search: filters.search || '',
         kategori: filters.kategori || '',
@@ -153,6 +142,14 @@ export default function Barang() {
         });
     };
 
+    const openStokSheet = (barang: BarangType, type: 'in' | 'out') => {
+        setStokAction({ barang, type });
+    };
+
+    const closeStokSheet = () => {
+        setStokAction({ barang: null, type: 'in' });
+    };
+
     return (
         <AppLayout>
             <Head title="Daftar Barang" />
@@ -167,6 +164,12 @@ export default function Barang() {
                 onClose={() => setEditingBarang(null)}
                 barang={editingBarang}
                 kategoriOptions={kategoriOptions}
+            />
+            <StokActionSheet
+                isOpen={!!stokAction.barang}
+                onClose={closeStokSheet}
+                barang={stokAction.barang}
+                actionType={stokAction.type}
             />
 
             <main className="flex h-full flex-1 flex-col gap-4 rounded-xl p-4 overflow-x-auto">
@@ -186,7 +189,6 @@ export default function Barang() {
                                 />
                             </div>
                             <div className="ml-auto flex items-center gap-2">
-                                {/* == NEW SEARCHABLE CATEGORY FILTER (COMBOBOX) == */}
                                 <Popover open={isFilterOpen} onOpenChange={setFilterOpen}>
                                     <PopoverTrigger asChild>
                                         <Button
@@ -304,11 +306,28 @@ export default function Barang() {
                                                         </Button>
                                                     </DropdownMenuTrigger>
                                                     <DropdownMenuContent align="end">
-                                                        <DropdownMenuLabel>Aksi</DropdownMenuLabel>
+                                                        <DropdownMenuLabel>Aksi Cepat</DropdownMenuLabel>
+                                                        <DropdownMenuItem onSelect={() => openStokSheet(item, 'in')}>
+                                                            <ArrowUp className="mr-2 h-4 w-4" />
+                                                            <span>Stock In</span>
+                                                        </DropdownMenuItem>
+                                                        <DropdownMenuItem onSelect={() => openStokSheet(item, 'out')}>
+                                                            <ArrowDown className="mr-2 h-4 w-4" />
+                                                            <span>Stock Out</span>
+                                                        </DropdownMenuItem>
+                                                        <DropdownMenuSeparator />
+                                                        <DropdownMenuLabel>Lainnya</DropdownMenuLabel>
                                                         <DropdownMenuItem onSelect={() => setTimeout(() => setEditingBarang(item), 50)}>
                                                             <Pencil className="mr-2 h-4 w-4" />
                                                             <span>Edit</span>
                                                         </DropdownMenuItem>
+                                                        <DropdownMenuItem asChild>
+                                                            <Link href={route('barang.history', item.id)}>
+                                                                <History className="mr-2 h-4 w-4" />
+                                                                <span>Riwayat Stok</span>
+                                                            </Link>
+                                                        </DropdownMenuItem>
+                                                        <DropdownMenuSeparator />
                                                         <DropdownMenuItem
                                                             className="text-red-600 focus:text-red-600 focus:bg-red-100"
                                                             onSelect={() => setTimeout(() => setDeletingBarang(item), 50)}
