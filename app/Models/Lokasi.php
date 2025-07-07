@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Lokasi extends Model
 {
     protected $table = 'lokasi';
-    protected $fillable = ['nama', 'latitude', 'longitude'];
+    protected $fillable = ['id', 'nama', 'latitude', 'longitude'];
 
     public function barang(): HasMany
     {
