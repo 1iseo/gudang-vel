@@ -26,6 +26,11 @@ class Barang extends Model
     {
         return $this->hasMany(RiwayatBarang::class);
     }
+
+    public function lokasi(): BelongsTo
+    {
+        return $this->belongsTo(Lokasi::class);
+    }
 }
 
 
