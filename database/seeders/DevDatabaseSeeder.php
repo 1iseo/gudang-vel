@@ -36,6 +36,7 @@ class DevDatabaseSeeder extends Seeder
             'longitude' => 106.816666,
         ]);
 
+        $this->call(KategoriSeeder::class);
 
         Barang::factory(10)->create([
             'lokasi_id' => 1, // Assuming lokasi with ID 1 exists
@@ -48,6 +49,5 @@ class DevDatabaseSeeder extends Seeder
         //     'name' => 'Test User',
         //     'email' => 'test@example.com',
         // ]);
-        $this->call(KategoriSeeder::class);
     }
 }
