@@ -38,7 +38,7 @@ class DevDatabaseSeeder extends Seeder
 
 
         Barang::factory(10)->create([
-            'lokasi' => 1, // Assuming lokasi with ID 1 exists
+            'lokasi_id' => 1, // Assuming lokasi with ID 1 exists
             'kategori_id' => 1, // Assuming kategori with ID 1 exists
         ]);
 
