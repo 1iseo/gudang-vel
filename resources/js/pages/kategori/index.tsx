@@ -121,7 +121,7 @@ export default function KategoriIndex() {
                                                 </Link>
                                             </TableCell>
                                             <TableCell className="text-center">
-                                                <Badge variant="secondary">{kategori.barang_count} Barang</Badge>
+                                                <Badge variant="secondary"><span className='font-semibold'>{kategori.barang_count}</span> Barang</Badge>
                                             </TableCell>
                                             <TableCell className="text-right">
                                                 <DropdownMenu>
