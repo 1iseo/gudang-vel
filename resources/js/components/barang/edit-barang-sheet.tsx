@@ -13,11 +13,7 @@ import {
     SheetHeader,
     SheetTitle,
 } from '@/components/ui/sheet';
-
-interface KategoriType {
-    id: number;
-    nama: string;
-}
+import { Kategori, Lokasi } from '@/types';
 
 interface BarangType {
     id: number;
@@ -32,7 +28,8 @@ interface EditBarangSheetProps {
     isOpen: boolean;
     onClose: () => void;
     barang: BarangType | null;
-    kategoriOptions: KategoriType[];
+    kategoriOptions: Kategori[];
+    lokasiOptions: Lokasi[];
 }
 
 export const EditBarangSheet: React.FC<EditBarangSheetProps> = ({ isOpen, onClose, barang, kategoriOptions }) => {
@@ -64,7 +61,7 @@ export const EditBarangSheet: React.FC<EditBarangSheetProps> = ({ isOpen, onClos
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         if (!barang) return;
-        
+
         post(route('barang.update', barang.id), {
             onSuccess: () => {
                 onClose();

@@ -15,11 +15,13 @@ import {
     SheetTitle,
 } from '@/components/ui/sheet';
 import { useForm } from '@inertiajs/react';
+import { Kategori, Lokasi } from '@/types';
 
 interface TambahBarangSheetProps {
     isOpen: boolean;
     onClose: () => void;
-    kategoriOptions: { id: number, nama: string }[];
+    kategoriOptions: Kategori[];
+    lokasiOptions: Lokasi[];
 }
 
 export function TambahBarangSheet({ isOpen, onClose, kategoriOptions }: TambahBarangSheetProps) {

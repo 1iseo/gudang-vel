@@ -15,7 +15,7 @@ class Barang extends Model
 
     protected $table = 'barang';
     protected $fillable = ['kode', 'nama', 'stok', 'lokasi', 'kategori_id', 'image_path'];
-    protected $with = ['kategori'];
+    protected $with = ['kategori', 'lokasi'];
 
     public function kategori(): BelongsTo
     {

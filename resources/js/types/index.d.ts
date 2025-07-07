@@ -75,3 +75,12 @@ export interface RiwayatBarang {
     updated_at: string;
     barang: Barang;
 }
+
+export interface Lokasi {
+    id: number;
+    nama: string;
+    latitude: number;
+    longitude: number;
+    created_at: string;
+    updated_at: string;
+}

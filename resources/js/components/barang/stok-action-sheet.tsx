@@ -8,6 +8,8 @@ import InputError from '../input-error';
 import { Label } from '../ui/label';
 import { Textarea } from '../ui/textarea';
 
+// FIXME: FOCUS TRAP BUG
+
 interface StokActionSheetProps {
     isOpen: boolean;
     onClose: () => void;
@@ -50,7 +52,7 @@ export function StokActionSheet({ isOpen, onClose, barang, actionType }: StokAct
 
     return (
         <Sheet open={isOpen} onOpenChange={onClose}>
-            <SheetContent trapFocus={false}>
+            <SheetContent>
                 <SheetHeader>
                     <SheetTitle>{title}</SheetTitle>
                     <SheetDescription>{description}</SheetDescription>

@@ -17,7 +17,7 @@ import { cn } from '@/lib/utils';
 import { EditBarangSheet } from '@/components/barang/edit-barang-sheet';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { StokActionSheet } from '@/components/barang/stok-action-sheet';
-import { Barang as BarangType, Kategori as KategoriType } from '@/types';
+import { Barang as BarangType, Kategori as KategoriType, Lokasi as LokasiType } from '@/types';
 
 interface ItemDetailModalProps {
     item: BarangType | null;
@@ -96,10 +96,13 @@ interface PaginatedBarang {
     next_page_url: string | null;
 }
 
+
+
 type PageProps = {
     list_barang: PaginatedBarang;
     filters: { search: string; kategori: string };
     kategoriOptions: KategoriType[];
+    lokasiOptions: LokasiType[];
 };
 
 export default function Barang() {

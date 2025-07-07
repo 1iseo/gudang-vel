@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Barang;
 use App\Models\Kategori;
+use App\Models\Lokasi;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -33,16 +34,15 @@ class BarangController extends Controller
         });
 
         // Ambil hasil setelah filter dengan paginasi
-        $list_barang = $query->orderBy('created_at', 'desc')
-            ->paginate(10)
-            ->withQueryString();
-
+        $list_barang = $query->orderBy('created_at', 'desc')->paginate(10)->withQueryString();
         $kategoriOptions = Kategori::all(['id', 'nama']);
+        $lokasiOptions = Lokasi::all(['id', 'nama']);
 
         return Inertia::render('barang/index', [
             'list_barang' => $list_barang,
             'filters' => $request->only(['search', 'kategori']),
             'kategoriOptions' => $kategoriOptions,
+            'lokasiOptions' => $lokasiOptions,
         ]);
     }
 
@@ -62,7 +62,7 @@ class BarangController extends Controller
             'kode' => 'required|string|unique:barang,kode',
             'nama' => 'required|string|max:255',
             'kategori_id' => 'required|exists:kategori,id',
-            'lokasi' => 'nullable|string',
+            'lokasi_id' => 'nullable|exists:lokasi,id',
             'stok' => 'nullable|integer|min:0',
             'image' => 'nullable|image|max:2048',
         ]);
@@ -89,7 +89,7 @@ class BarangController extends Controller
                 'kode' => $validated['kode'],
                 'nama' => $validated['nama'],
                 'stok' => $validated['stok'] ?? 0,
-                'lokasi' => $validated['lokasi'],
+                'lokasi_id' => $validated['lokasi_id'],
                 'kategori_id' => $validated['kategori_id'],
                 'image_path' => $imagePath,
             ]);
@@ -130,7 +130,7 @@ class BarangController extends Controller
             'nama' => 'required|string|max:255',
             'kode' => 'required|string|max:255|unique:barang,kode,' . $barang->id,
             'kategori_id' => 'required|exists:kategori,id',
-            'lokasi' => 'nullable|string|max:255',
+            'lokasi_id' => 'nullable|exists:lokasi,id',
             'stok' => 'required|integer|min:0',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
         ]);
@@ -140,8 +140,7 @@ class BarangController extends Controller
         if ($request->hasFile('image')) {
             $image = $request->file('image');
             $filename = Str::uuid() . '.' . $image->getClientOriginalExtension();
-            $destinationPath = public_path('barang-images');
-            $image->move($destinationPath, $filename);
+            $image->move(public_path('barang-images'), $filename);
             $barang->image_path = 'barang-images/' . $filename;
         }
 
