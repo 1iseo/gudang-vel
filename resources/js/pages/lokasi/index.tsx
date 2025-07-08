@@ -14,14 +14,14 @@ import { Label } from '@/components/ui/label';
 import { Pagination, PaginationContent, PaginationItem, PaginationLink } from '@/components/ui/pagination';
 import { MoreHorizontal, PlusCircle, Pencil, Trash2, Eye } from 'lucide-react';
 
-interface KategoriWithCount {
+interface LokasiWithCount {
     id: number;
     nama: string;
     barang_count: number;
 }
 
-interface PaginatedKategori {
-    data: KategoriWithCount[];
+interface PaginatedLokasi {
+    data: LokasiWithCount[];
     links: { url: string | null; label: string; active: boolean }[];
     from: number;
     to: number;
@@ -29,16 +29,16 @@ interface PaginatedKategori {
 }
 
 type PageProps = {
-    kategoriList: PaginatedKategori;
+    lokasiList: PaginatedLokasi;
     errors: { nama?: string };
 };
 
-export default function KategoriIndex() {
-    const { kategoriList, errors } = usePage<PageProps>().props;
+export default function LokasiIndex() {
+    const { lokasiList, errors } = usePage<PageProps>().props;
 
     const [isAddDialogOpen, setAddDialogOpen] = useState(false);
-    const [editingKategori, setEditingKategori] = useState<KategoriWithCount | null>(null);
-    const [deletingKategori, setDeletingKategori] = useState<KategoriWithCount | null>(null);
+    const [editingLokasi, setEditingLokasi] = useState<LokasiWithCount | null>(null);
+    const [deletingLokasi, setDeletingLokasi] = useState<LokasiWithCount | null>(null);
 
     const { data, setData, post, put, processing, errors: formErrors, reset } = useForm({
         id: undefined as number | undefined,
@@ -47,16 +47,16 @@ export default function KategoriIndex() {
 
     // Effect to open edit dialog and set form data
     useEffect(() => {
-        if (editingKategori) {
-            setData({ id: editingKategori.id, nama: editingKategori.nama });
+        if (editingLokasi) {
+            setData({ id: editingLokasi.id, nama: editingLokasi.nama });
         } else {
             reset(); // Reset form when closing dialog
         }
-    }, [editingKategori]);
+    }, [editingLokasi]);
 
     const handleAddSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        post(route('kategori.store'), {
+        post(route('lokasi.store'), {
             onSuccess: () => {
                 setAddDialogOpen(false);
                 reset();
@@ -67,34 +67,35 @@ export default function KategoriIndex() {
     const handleEditSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         console.log("CALLLLLEEDDDD")
-        if (!editingKategori) return;
-        put(route('kategori.update', editingKategori.id), {
+        if (!editingLokasi) return;
+        put(route('lokasi.update', editingLokasi.id), {
             onSuccess: () => {
-                setEditingKategori(null);
+                setEditingLokasi(null);
                 reset();
             },
         });
     };
 
     const handleDelete = () => {
-        if (!deletingKategori) return;
-        router.delete(route('kategori.destroy', deletingKategori.id), {
-            onSuccess: () => setDeletingKategori(null),
+        if (!deletingLokasi) return;
+        router.delete(route('lokasi.destroy', deletingLokasi.id), {
+            onSuccess: () => setDeletingLokasi(null),
         });
     };
 
     return (
         <AppLayout>
-            <Head title="Daftar Kategori" />
+            <Head title="Daftar Lokasi" />
+
             <main className="flex h-full flex-1 flex-col gap-4 rounded-xl p-4 overflow-x-auto">
                 <Card>
                     <CardHeader>
-                        <CardTitle>Daftar Kategori</CardTitle>
-                        <CardDescription>Kelola kategori untuk semua barang di gudang.</CardDescription>
+                        <CardTitle>Daftar Lokasi</CardTitle>
+                        <CardDescription>Kelola lokasi untuk semua barang di gudang.</CardDescription>
                         <CardAction>
                             <Button size="sm" className="gap-1" onClick={() => setAddDialogOpen(true)}>
                                 <PlusCircle className="h-3.5 w-3.5" />
-                                <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">Tambah Kategori</span>
+                                <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">Tambah Lokasi</span>
                             </Button>
                         </CardAction>
                     </CardHeader>
@@ -102,25 +103,25 @@ export default function KategoriIndex() {
                         <Table>
                             <TableHeader>
                                 <TableRow>
-                                    <TableHead>Nama Kategori</TableHead>
+                                    <TableHead>Nama Lokasi</TableHead>
                                     <TableHead className="text-center">Jumlah Barang</TableHead>
                                     <TableHead><span className="sr-only">Aksi</span></TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {kategoriList.data.length > 0 ? (
-                                    kategoriList.data.map((kategori) => (
-                                        <TableRow key={kategori.id}>
+                                {lokasiList.data.length > 0 ? (
+                                    lokasiList.data.map((lokasi) => (
+                                        <TableRow key={lokasi.id}>
                                             <TableCell className="font-medium">
                                                 <Link
-                                                    href={route('barang.index', { kategori: kategori.nama })}
+                                                    href={route('barang.index', { lokasi: lokasi.nama })}
                                                     className="hover:underline"
                                                 >
-                                                    {kategori.nama}
+                                                    {lokasi.nama}
                                                 </Link>
                                             </TableCell>
                                             <TableCell className="text-center">
-                                                <Badge variant="secondary"><span className='font-semibold'>{kategori.barang_count}</span> Barang</Badge>
+                                                <Badge variant="secondary"><span className='font-semibold'>{lokasi.barang_count}</span> Barang</Badge>
                                             </TableCell>
                                             <TableCell className="text-right">
                                                 <DropdownMenu>
@@ -133,20 +134,20 @@ export default function KategoriIndex() {
                                                     <DropdownMenuContent align="end">
                                                         <DropdownMenuLabel>Aksi</DropdownMenuLabel>
                                                         <DropdownMenuItem asChild>
-                                                            <Link href={route('barang.index', { kategori: kategori.nama })}>
+                                                            <Link href={route('barang.index', { lokasi: lokasi.nama })}>
                                                                 <Eye className="mr-2 h-4 w-4" />
                                                                 <span>Lihat Barang</span>
                                                             </Link>
                                                         </DropdownMenuItem>
                                                         {/* TODO: ACTUALLY FIX THISSSSS */}
                                                         {/* NOTE: Tanpa setTimeout akan terjadi bug focus trap dan nanti UI tidak bisa diklik */}
-                                                        <DropdownMenuItem onClick={() => setTimeout(() => setEditingKategori(kategori), 50)}>
+                                                        <DropdownMenuItem onClick={() => setTimeout(() => setEditingLokasi(lokasi), 50)}>
                                                             <Pencil className="mr-2 h-4 w-4" />
                                                             <span>Ubah Nama</span>
                                                         </DropdownMenuItem>
                                                         <DropdownMenuItem
                                                             className="text-red-600 focus:text-red-600 focus:bg-red-100"
-                                                            onClick={() => setTimeout(() => setDeletingKategori(kategori), 50)}
+                                                            onClick={() => setTimeout(() => setDeletingLokasi(lokasi), 50)}
                                                         >
                                                             <Trash2 className="mr-2 h-4 w-4" />
                                                             <span>Hapus</span>
@@ -159,7 +160,7 @@ export default function KategoriIndex() {
                                 ) : (
                                     <TableRow>
                                         <TableCell colSpan={3} className="h-24 text-center">
-                                            Belum ada kategori.
+                                            Belum ada lokasi.
                                         </TableCell>
                                     </TableRow>
                                 )}
@@ -168,11 +169,11 @@ export default function KategoriIndex() {
                     </CardContent>
                     <CardFooter className="flex items-center justify-between">
                         <div className="text-xs text-muted-foreground">
-                            Menampilkan <strong>{kategoriList.from}-{kategoriList.to}</strong> dari <strong>{kategoriList.total}</strong> kategori
+                            Menampilkan <strong>{lokasiList.from}-{lokasiList.to}</strong> dari <strong>{lokasiList.total}</strong> lokasi
                         </div>
                         <Pagination className="ml-auto">
                             <PaginationContent>
-                                {kategoriList.links.map((link, index) => (
+                                {lokasiList.links.map((link, index) => (
                                     <PaginationItem key={index}>
                                         <PaginationLink
                                             href={link.url || '#'}
@@ -195,8 +196,8 @@ export default function KategoriIndex() {
                 <DialogContent className="sm:max-w-[425px]">
                     <form onSubmit={handleAddSubmit}>
                         <DialogHeader>
-                            <DialogTitle>Tambah Kategori Baru</DialogTitle>
-                            <DialogDescription>Masukkan nama untuk kategori baru.</DialogDescription>
+                            <DialogTitle>Tambah Lokasi Baru</DialogTitle>
+                            <DialogDescription>Masukkan nama untuk lokasi baru.</DialogDescription>
                         </DialogHeader>
                         <div className="grid gap-4 py-4">
                             <div className="grid grid-cols-4 items-center gap-4">
@@ -220,12 +221,12 @@ export default function KategoriIndex() {
             </Dialog>
 
             {/* Edit Category Dialog */}
-            <Dialog open={!!editingKategori} onOpenChange={() => setEditingKategori(null)}>
+            <Dialog open={!!editingLokasi} onOpenChange={() => setEditingLokasi(null)}>
                 <DialogContent className="sm:max-w-[425px]">
-                    <form id='edit-kategori-form' onSubmit={handleEditSubmit}>
+                    <form id='edit-lokasi-form' onSubmit={handleEditSubmit}>
                         <DialogHeader>
-                            <DialogTitle>Ubah Nama Kategori</DialogTitle>
-                            <DialogDescription>Perbarui nama untuk kategori yang dipilih.</DialogDescription>
+                            <DialogTitle>Ubah Nama Lokasi</DialogTitle>
+                            <DialogDescription>Perbarui nama untuk lokasi yang dipilih.</DialogDescription>
                         </DialogHeader>
                         <div className="grid gap-4 py-4">
                             <div className="grid grid-cols-4 items-center gap-4">
@@ -241,21 +242,21 @@ export default function KategoriIndex() {
                             </div>
                         </div>
                         <DialogFooter>
-                            <Button type="button" variant="outline" onClick={() => setEditingKategori(null)}>Batal</Button>
-                            <Button type="submit" form='edit-kategori-form' disabled={processing}>Simpan Perubahan</Button>
+                            <Button type="button" variant="outline" onClick={() => setEditingLokasi(null)}>Batal</Button>
+                            <Button type="submit" form='edit-lokasi-form' disabled={processing}>Simpan Perubahan</Button>
                         </DialogFooter>
                     </form>
                 </DialogContent>
             </Dialog>
 
             {/* Delete Confirmation Alert */}
-            <AlertDialog open={!!deletingKategori} onOpenChange={() => setDeletingKategori(null)}>
+            <AlertDialog open={!!deletingLokasi} onOpenChange={() => setDeletingLokasi(null)}>
                 <AlertDialogContent>
                     <AlertDialogHeader>
                         <AlertDialogTitle>Apakah Anda Yakin?</AlertDialogTitle>
                         <AlertDialogDescription>
-                            Tindakan ini tidak dapat dibatalkan. Ini akan menghapus kategori
-                            <span className="font-semibold"> "{deletingKategori?.nama}"</span>.
+                            Tindakan ini tidak dapat dibatalkan. Ini akan menghapus lokasi
+                            <span className="font-semibold"> "{deletingLokasi?.nama}"</span>.
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>

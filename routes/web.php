@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\BarangController;
 use App\Http\Controllers\KategoriController;
+use App\Http\Controllers\LokasiController;
 use App\Http\Controllers\StokController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -38,6 +39,13 @@ Route::controller(KategoriController::class)->group(function() {
     Route::post('/kategori', 'store')->name('kategori.store');
     Route::put('/kategori/{kategori}', 'update')->name('kategori.update');
     Route::delete('/kategori/{kategori}', 'destroy')->name('kategori.destroy');
+});
+
+Route::controller(LokasiController::class)->group(function() {
+    Route::get('/lokasi', 'index')->name('lokasi.index');
+    Route::post('/lokasi', 'store')->name('lokasi.store');
+    Route::put('/lokasi/{lokasi}', 'update')->name('lokasi.update');
+    Route::delete('/lokasi/{lokasi}', 'destroy')->name('lokasi.destroy');
 });
 
 

@@ -80,8 +80,8 @@ export interface RiwayatBarang {
 export interface Lokasi {
     id: number;
     nama: string;
-    latitude: number;
-    longitude: number;
+    latitude: number | null;
+    longitude: number | null;
     created_at: string;
     updated_at: string;
 }

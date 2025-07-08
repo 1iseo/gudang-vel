@@ -33,6 +33,12 @@ class BarangController extends Controller
             });
         });
 
+        $query->when($request->lokasi, function ($query, $namaLokasi) {
+            $query->whereHas('lokasi', function ($q) use ($namaLokasi) {
+                $q->where('nama', $namaLokasi);
+            });
+        });
+
         // Ambil hasil setelah filter dengan paginasi
         $list_barang = $query->orderBy('created_at', 'desc')->paginate(10)->withQueryString();
         $kategoriOptions = Kategori::all(['id', 'nama']);
@@ -40,7 +46,7 @@ class BarangController extends Controller
 
         return Inertia::render('barang/index', [
             'list_barang' => $list_barang,
-            'filters' => $request->only(['search', 'kategori']),
+            'filters' => $request->only(['search', 'kategori', 'lokasi']),
             'kategoriOptions' => $kategoriOptions,
             'lokasiOptions' => $lokasiOptions,
         ]);

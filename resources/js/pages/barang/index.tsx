@@ -100,7 +100,7 @@ interface PaginatedBarang {
 
 type PageProps = {
     list_barang: PaginatedBarang;
-    filters: { search: string; kategori: string };
+    filters: { search: string; kategori: string; lokasi: string };
     kategoriOptions: KategoriType[];
     lokasiOptions: LokasiType[];
 };
@@ -120,6 +120,7 @@ export default function Barang() {
     const { data, setData, get } = useForm({
         search: filters.search || '',
         kategori: filters.kategori || '',
+        lokasi: filters.lokasi || '',
     });
 
     useEffect(() => {
@@ -132,7 +133,7 @@ export default function Barang() {
         }, 300);
 
         return () => clearTimeout(timeout);
-    }, [data.search, data.kategori]);
+    }, [data.search, data.kategori, data.lokasi]);
 
     const handleOpenModal = (item: BarangType) => setSelectedItem(item);
     const handleCloseModal = () => setSelectedItem(null);
@@ -246,6 +247,62 @@ export default function Barang() {
                                                                 )}
                                                             />
                                                             {kat.nama}
+                                                        </CommandItem>
+                                                    ))}
+                                                </CommandGroup>
+                                            </CommandList>
+                                        </Command>
+                                    </PopoverContent>
+                                </Popover>
+                                <Popover>
+                                    <PopoverTrigger asChild>
+                                        <Button
+                                            variant="outline"
+                                            role="combobox"
+                                            className="w-[200px] justify-between h-8"
+                                        >
+                                            {data.lokasi
+                                                ? lokasiOptions.find((lok) => lok.nama.toLowerCase() === data.lokasi.toLowerCase())?.nama
+                                                : "Filter Lokasi"}
+                                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                        </Button>
+                                    </PopoverTrigger>
+                                    <PopoverContent className="w-[200px] p-0">
+                                        <Command>
+                                            <CommandInput placeholder="Cari lokasi..." />
+                                            <CommandList>
+                                                <CommandEmpty>Lokasi tidak ditemukan.</CommandEmpty>
+                                                <CommandGroup>
+                                                    <CommandItem
+                                                        key="all-lokasi"
+                                                        value=""
+                                                        onSelect={() => {
+                                                            setData('lokasi', '');
+                                                        }}
+                                                    >
+                                                        <Check
+                                                            className={cn(
+                                                                "mr-2 h-4 w-4",
+                                                                data.lokasi === '' ? "opacity-100" : "opacity-0"
+                                                            )}
+                                                        />
+                                                        Semua Lokasi
+                                                    </CommandItem>
+                                                    {lokasiOptions.map((lok) => (
+                                                        <CommandItem
+                                                            key={lok.id}
+                                                            value={lok.nama}
+                                                            onSelect={(currentValue) => {
+                                                                setData('lokasi', currentValue === data.lokasi ? '' : currentValue);
+                                                            }}
+                                                        >
+                                                            <Check
+                                                                className={cn(
+                                                                    "mr-2 h-4 w-4",
+                                                                    data.lokasi.toLowerCase() === lok.nama.toLowerCase() ? "opacity-100" : "opacity-0"
+                                                                )}
+                                                            />
+                                                            {lok.nama}
                                                         </CommandItem>
                                                     ))}
                                                 </CommandGroup>
