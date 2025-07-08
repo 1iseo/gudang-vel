@@ -4,7 +4,7 @@ import React, { useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { SearchableSelect } from '@/components/ui/searchable-select';
 import {
     Sheet,
     SheetClose,
@@ -24,12 +24,12 @@ interface TambahBarangSheetProps {
     lokasiOptions: Lokasi[];
 }
 
-export function TambahBarangSheet({ isOpen, onClose, kategoriOptions }: TambahBarangSheetProps) {
+export function TambahBarangSheet({ isOpen, onClose, kategoriOptions, lokasiOptions }: TambahBarangSheetProps) {
 
     const { data, setData, post, processing, errors, reset } = useForm({
         kode: '',
         nama: '',
-        lokasi: '',
+        lokasi_id: null as number | null,
         kategori_id: 1, // Default to Uncategorized
         stok: 0,
         image: null as File | null,
@@ -100,15 +100,18 @@ export function TambahBarangSheet({ isOpen, onClose, kategoriOptions }: TambahBa
                             <Label htmlFor="lokasi" className="text-right">
                                 Lokasi
                             </Label>
-                            <Input
-                                id="lokasi"
-                                value={data.lokasi}
-                                onChange={(e) => setData('lokasi', e.target.value)}
-                                className="col-span-3"
-                                placeholder="Lokasi barang"
-                            />
-                            {errors.kode && (
-                                <p className="col-span-4 text-sm text-red-600 text-right">{errors.kode}</p>
+                            <div className="col-span-3">
+                                <SearchableSelect
+                                    options={lokasiOptions.map(lok => ({ value: lok.id.toString(), label: lok.nama }))}
+                                    value={data.lokasi_id?.toString() ?? ''}
+                                    onChange={(value) => setData('lokasi_id', parseInt(value))}
+                                    placeholder="Pilih lokasi"
+                                    searchPlaceholder="Cari lokasi..."
+                                    emptyText="Lokasi tidak ditemukan."
+                                />
+                            </div>
+                            {errors.lokasi_id && (
+                                <p className="col-span-4 text-sm text-red-600 text-right">{errors.lokasi_id}</p>
                             )}
                         </div>
 
@@ -135,19 +138,19 @@ export function TambahBarangSheet({ isOpen, onClose, kategoriOptions }: TambahBa
                             <Label htmlFor="kategori_id" className="text-right">
                                 Kategori
                             </Label>
-                            <Select onValueChange={(value) => setData('kategori_id', parseInt(value))}>
-                                <SelectTrigger id="kategori_id" className="col-span-3">
-                                    {/* Optional: show selected value or placeholder */}
-                                    <SelectValue placeholder="Pilih kategori" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {kategoriOptions.map((kat) => (
-                                        <SelectItem key={kat.id} value={kat.id.toString()}>
-                                            {kat.nama}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
+                            <div className="col-span-3">
+                                <SearchableSelect
+                                    options={kategoriOptions.map(kat => ({ value: kat.id.toString(), label: kat.nama }))}
+                                    value={data.kategori_id.toString()}
+                                    onChange={(value) => setData('kategori_id', parseInt(value))}
+                                    placeholder="Pilih kategori"
+                                    searchPlaceholder="Cari kategori..."
+                                    emptyText="Kategori tidak ditemukan."
+                                />
+                            </div>
+                            {errors.kategori_id && (
+                                <p className="col-span-4 text-sm text-red-600 text-right">{errors.kategori_id}</p>
+                            )}
                         </div>
 
                         {/* Gambar */}

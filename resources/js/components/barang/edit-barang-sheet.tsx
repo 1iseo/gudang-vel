@@ -3,7 +3,7 @@ import { useForm } from '@inertiajs/react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { SearchableSelect } from '@/components/ui/searchable-select';
 import {
     Sheet,
     SheetClose,
@@ -23,13 +23,13 @@ interface EditBarangSheetProps {
     lokasiOptions: Lokasi[];
 }
 
-export const EditBarangSheet: React.FC<EditBarangSheetProps> = ({ isOpen, onClose, barang, kategoriOptions }) => {
+export const EditBarangSheet: React.FC<EditBarangSheetProps> = ({ isOpen, onClose, barang, kategoriOptions, lokasiOptions }) => {
     const { data, setData, post, processing, errors, reset } = useForm({
         _method: 'PUT',
         nama: '',
         kode: '',
         kategori_id: '',
-        lokasi: '',
+        lokasi_id: '',
         stok: 0,
         image: null as File | null,
     });
@@ -42,7 +42,7 @@ export const EditBarangSheet: React.FC<EditBarangSheetProps> = ({ isOpen, onClos
                 nama: barang.nama,
                 kode: barang.kode,
                 kategori_id: barang.kategori.id.toString(),
-                lokasi: barang.lokasi.id.toString(),
+                lokasi_id: barang.lokasi.id.toString(),
                 stok: barang.stok,
                 image: null,
             });
@@ -115,15 +115,18 @@ export const EditBarangSheet: React.FC<EditBarangSheetProps> = ({ isOpen, onClos
                             <Label htmlFor="lokasi-edit" className="text-right">
                                 Lokasi
                             </Label>
-                            <Input
-                                id="lokasi-edit"
-                                value={data.lokasi}
-                                onChange={(e) => setData('lokasi', e.target.value)}
-                                className="col-span-3"
-                                placeholder="Lokasi barang"
-                            />
-                            {errors.lokasi && (
-                                <p className="col-span-4 text-sm text-red-600 text-right">{errors.lokasi}</p>
+                            <div className="col-span-3">
+                                <SearchableSelect
+                                    options={lokasiOptions.map(lok => ({ value: lok.id.toString(), label: lok.nama }))}
+                                    value={data.lokasi_id?.toString() ?? ''}
+                                    onChange={(value) => setData('lokasi_id', value)}
+                                    placeholder="Pilih lokasi"
+                                    searchPlaceholder="Cari lokasi..."
+                                    emptyText="Lokasi tidak ditemukan."
+                                />
+                            </div>
+                            {errors.lokasi_id && (
+                                <p className="col-span-4 text-sm text-red-600 text-right">{errors.lokasi_id}</p>
                             )}
                         </div>
 
@@ -150,18 +153,16 @@ export const EditBarangSheet: React.FC<EditBarangSheetProps> = ({ isOpen, onClos
                             <Label htmlFor="kategori_id-edit" className="text-right">
                                 Kategori
                             </Label>
-                            <Select value={data.kategori_id} onValueChange={(value) => setData('kategori_id', value)}>
-                                <SelectTrigger id="kategori_id-edit" className="col-span-3">
-                                    <SelectValue placeholder="Pilih kategori" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {kategoriOptions.map((kat) => (
-                                        <SelectItem key={kat.id} value={kat.id.toString()}>
-                                            {kat.nama}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
+                            <div className="col-span-3">
+                                <SearchableSelect
+                                    options={kategoriOptions.map(kat => ({ value: kat.id.toString(), label: kat.nama }))}
+                                    value={data.kategori_id.toString()}
+                                    onChange={(value) => setData('kategori_id', value)}
+                                    placeholder="Pilih kategori"
+                                    searchPlaceholder="Cari kategori..."
+                                    emptyText="Kategori tidak ditemukan."
+                                />
+                            </div>
                             {errors.kategori_id && (
                                 <p className="col-span-4 text-sm text-red-600 text-right">{errors.kategori_id}</p>
                             )}
