@@ -369,11 +369,11 @@ export default function Barang() {
                                                     </DropdownMenuTrigger>
                                                     <DropdownMenuContent align="end">
                                                         <DropdownMenuLabel>Aksi Cepat</DropdownMenuLabel>
-                                                        <DropdownMenuItem onSelect={() => openStokSheet(item, 'in')}>
+                                                        <DropdownMenuItem onSelect={() => setTimeout(() => openStokSheet(item, 'in'), 50)}>
                                                             <ArrowUp className="mr-2 h-4 w-4" />
                                                             <span>Stock In</span>
                                                         </DropdownMenuItem>
-                                                        <DropdownMenuItem onSelect={() => openStokSheet(item, 'out')}>
+                                                        <DropdownMenuItem onSelect={() => setTimeout(() => openStokSheet(item, 'in'), 50)}>
                                                             <ArrowDown className="mr-2 h-4 w-4" />
                                                             <span>Stock Out</span>
                                                         </DropdownMenuItem>
