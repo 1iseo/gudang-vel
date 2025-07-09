@@ -27,7 +27,6 @@ interface TambahBarangSheetProps {
 export function TambahBarangSheet({ isOpen, onClose, kategoriOptions, lokasiOptions }: TambahBarangSheetProps) {
 
     const { data, setData, post, processing, errors, reset } = useForm({
-        kode: '',
         nama: '',
         lokasi_id: null as number | null,
         kategori_id: 1, // Default to Uncategorized
@@ -75,23 +74,6 @@ export function TambahBarangSheet({ isOpen, onClose, kategoriOptions, lokasiOpti
                             />
                             {errors.nama && (
                                 <p className="col-span-4 text-sm text-red-600 text-right">{errors.nama}</p>
-                            )}
-                        </div>
-
-                        {/* Kode */}
-                        <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="kode" className="text-right">
-                                Kode
-                            </Label>
-                            <Input
-                                id="kode"
-                                value={data.kode}
-                                onChange={(e) => setData('kode', e.target.value)}
-                                className="col-span-3"
-                                placeholder="Kode barang"
-                            />
-                            {errors.kode && (
-                                <p className="col-span-4 text-sm text-red-600 text-right">{errors.kode}</p>
                             )}
                         </div>
 

@@ -65,7 +65,6 @@ class BarangController extends Controller
         }
 
         $validated = $request->validate([
-            'kode' => 'required|string|unique:barang,kode',
             'nama' => 'required|string|max:255',
             'kategori_id' => 'required|exists:kategori,id',
             'lokasi_id' => 'nullable|exists:lokasi,id',
@@ -92,7 +91,6 @@ class BarangController extends Controller
 
         DB::transaction(function () use ($validated, $imagePath, $request) {
             $barang = Barang::create([
-                'kode' => $validated['kode'],
                 'nama' => $validated['nama'],
                 'stok' => $validated['stok'] ?? 0,
                 'lokasi_id' => $validated['lokasi_id'],
