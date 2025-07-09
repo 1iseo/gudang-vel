@@ -14,6 +14,7 @@ Route::get('/', function () {
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::resource('users', \App\Http\Controllers\UserController::class);
 });
 
 Route::controller(BarangController::class)->group(function() {

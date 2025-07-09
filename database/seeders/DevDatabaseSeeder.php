@@ -20,6 +20,7 @@ class DevDatabaseSeeder extends Seeder
         $user->name = 'Admin';
         $user->email = 'admin@example.com';
         $user->password = Hash::make('admin');
+        $user->role = 'super_admin';
         $user->save();
 
         $lokasi = Lokasi::create([
