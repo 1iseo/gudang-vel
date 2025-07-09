@@ -373,7 +373,7 @@ export default function Barang() {
                                                             <ArrowUp className="mr-2 h-4 w-4" />
                                                             <span>Stock In</span>
                                                         </DropdownMenuItem>
-                                                        <DropdownMenuItem onSelect={() => setTimeout(() => openStokSheet(item, 'in'), 50)}>
+                                                        <DropdownMenuItem onSelect={() => setTimeout(() => openStokSheet(item, 'out'), 50)}>
                                                             <ArrowDown className="mr-2 h-4 w-4" />
                                                             <span>Stock Out</span>
                                                         </DropdownMenuItem>
