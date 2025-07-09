@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('barang', function (Blueprint $table) {
             $table->id();
             $table->timestamps();
-            $table->string('kode')->unique();
+            $table->string('kode')->nullable()->unique();
             $table->string('nama');
             $table->string('lokasi')->default('');
             $table->integer('stok')->default(0);
