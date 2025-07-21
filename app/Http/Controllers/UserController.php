@@ -103,6 +103,11 @@ class UserController extends \Illuminate\Routing\Controller
      */
     public function destroy(User $user)
     {
+        // Don't delete current logged 
+        if ($user->email === auth()->user()->email) {
+            return redirect()->route('users.index')->with('error', 'Cannot delete the currently logged-in user.');
+        }
+
         $user->delete();
 
         return redirect()->route('users.index');

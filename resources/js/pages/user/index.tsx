@@ -1,11 +1,13 @@
 import AppLayout from '@/layouts/app-layout';
 import { User } from '@/types';
 import { Head, Link, usePage } from '@inertiajs/react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import UserForm from './user-form';
 import { Button } from '@/components/ui/button';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { router } from '@inertiajs/react';
+import { Alert } from '@/components/ui/alert';
+import { AlertCircle } from 'lucide-react';
 
 type Props = {
     users: User[];
@@ -15,7 +17,19 @@ export default function UserIndex({ users }: Props) {
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [isDeleteAlertOpen, setIsDeleteAlertOpen] = useState(false);
     const [selectedUser, setSelectedUser] = useState<User | undefined>(undefined);
-    const { auth } = usePage().props as any;
+    const { auth, flash } = usePage().props as any;
+    const [visibleError, setVisibleError] = useState<string | null>(null);
+
+    const error = flash.error as string | null;
+
+    useEffect(() => {
+        if (error) {
+            setVisibleError(error);
+            const timer = setTimeout(() => setVisibleError(null), 5000);
+            return () => clearTimeout(timer);
+        }
+    }, [error]);
+
 
     const openForm = (user?: User) => {
         setSelectedUser(user);
@@ -63,6 +77,14 @@ export default function UserIndex({ users }: Props) {
                     </div>
                 </div>
                 <div className="mt-8 flow-root">
+                    {visibleError && (
+                        <div className="mt-4">
+                            <Alert variant="destructive">
+                                <AlertCircle className="h-4 w-4" />
+                                <span>{visibleError}</span>
+                            </Alert>
+                        </div>
+                    )}
                     <div className="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
                         <div className="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
                             <table className="min-w-full divide-y divide-gray-300 dark:divide-gray-700">
