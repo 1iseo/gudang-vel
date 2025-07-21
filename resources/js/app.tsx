@@ -20,9 +20,6 @@ createInertiaApp({
     },
 });
 
-// TODO: Jangan lupa dihapus
-localStorage.setItem('appearance', 'dark'); 
-
 // This will set light / dark mode on load...
 initializeTheme();
 
