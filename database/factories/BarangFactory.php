@@ -17,7 +17,7 @@ class BarangFactory extends Factory
     public function definition(): array
     {
         return [
-            'kode' => $this->faker->unique()->bothify('BRG-###'),
+            'kode' => null, // Kode akan dihasilkan secara otomatis saat model dibuat
             'nama' => $this->faker->words(3, true),
             'lokasi_id' => 1,
             'kategori_id' => 1,
