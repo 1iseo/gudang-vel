@@ -21,13 +21,15 @@ class Barang extends Model
     {
         parent::boot();
 
-        static::created(function ($barang) {
+        static::created(function (Barang $barang) {
             // Generate kode hanya jika belum ada.
             // Ini mencegah penimpaan kode jika diatur secara manual (misalnya dari seeder).
             if (empty($barang->kode)) {
-                $sqids = new Sqids(minLength: 8);
-                // Menggunakan updateQuietly untuk menghindari memicu event update lainnya.
-                $barang->kode = $sqids->encode([$barang->id]);
+                // $sqids = new Sqids(minLength: 8);
+                // $barang->kode = $sqids->encode([$barang->id]);
+
+                $barang->kode = 'BRG-' . str_pad($barang->id, 5, '0', STR_PAD_LEFT);
+                // Menggunakan saveQueitly untuk menghindari memicu event update lainnya.
                 $barang->saveQuietly();
             }
         });
