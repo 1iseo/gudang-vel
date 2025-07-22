@@ -17,9 +17,8 @@ class BarangController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Barang::query(); // Kita tidak perlu 'with' di sini karena sudah ada di properti model '$with'
+        $query = Barang::query(); 
 
-        // Terapkan filter pencarian (ini tetap sama)
         $query->when($request->input('search'), function ($q, $search) {
             $q->where(function ($subQuery) use ($search) {
                 $subQuery->where('nama', 'like', "%{$search}%")

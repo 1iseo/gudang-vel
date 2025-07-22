@@ -14,10 +14,10 @@ class BarangController extends Controller
         $query = Barang::query()->with(['kategori', 'lokasi']);
 
         if ($request->has('search') && !empty($request->input('search'))) {
-            $searchTerm = $request->input('search');
-            $query->where(function ($q) use ($searchTerm) {
-                $q->where('nama', 'like', "%{$searchTerm}%")
-                    ->orWhere('deskripsi', 'like', "%{$searchTerm}%");
+            $search = $request->input('search');
+            $query->where(function ($q) use ($search) {
+                $q->where('nama', 'like', "%{$search}%")
+                    ->orWhere('kode', 'like', "%{$search}%");
             });
         }
 
