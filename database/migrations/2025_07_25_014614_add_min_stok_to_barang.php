@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::table('barang', function (Blueprint $table) {
             // min_stok merupakan batas bawah stok barang sebelum dianggap hampir habis
             // dan perlu ditampilkan di dashboard
+            // 0 berarti tidak ada batasan minimum
             $table->integer('min_stok')->default(0)->after('stok');
         });
     }

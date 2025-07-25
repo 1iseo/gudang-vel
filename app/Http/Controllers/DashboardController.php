@@ -14,7 +14,11 @@ class DashboardController extends Controller
         $totalJenisBarang = Barang::count();
         $totalStok = Barang::sum('stok');
         $totalKategori = Kategori::count();
-        $barangHampirHabis = Barang::with(['kategori', 'lokasi'])->orderBy('stok', 'asc')->take(10)->get();
+        $barangHampirHabis = Barang::with(['kategori', 'lokasi'])
+            ->where('stok', '<=', 'min_stok')
+            ->where('min_stok', '>', 0)
+            ->orderBy('stok', 'asc')
+            ->get();
 
         return Inertia::render('dashboard', [
             'totalJenisBarang' => $totalJenisBarang,

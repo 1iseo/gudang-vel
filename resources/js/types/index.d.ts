@@ -41,7 +41,7 @@ export interface User {
     created_at: string;
     updated_at: string;
     role: string;
-    [key: string]: unknown; // This allows for additional properties...
+    [key: string]: unknown; // Additional properties...
 }
 
 export interface Kategori {
@@ -56,6 +56,7 @@ export interface Barang {
     kode: string;
     nama: string;
     stok: number;
+    min_stok: number; // Stok minimal sebelum dianggap hampir habis / perlu restock 
     lokasi_id: number;
     lokasi: Lokasi;
     kategori_id: number;

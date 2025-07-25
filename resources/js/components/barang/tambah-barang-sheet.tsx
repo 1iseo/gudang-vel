@@ -31,6 +31,7 @@ export function TambahBarangSheet({ isOpen, onClose, kategoriOptions, lokasiOpti
         lokasi_id: null as number | null,
         kategori_id: 1, // Default to Uncategorized
         stok: 0,
+        min_stok: 0, // Default minimum stock to 0 (no minimum)
         image: null as File | null,
     });
 
@@ -112,6 +113,30 @@ export function TambahBarangSheet({ isOpen, onClose, kategoriOptions, lokasiOpti
                             />
                             {errors.stok && (
                                 <p className="col-span-4 text-sm text-red-600 text-right">{errors.stok}</p>
+                            )}
+                        </div>
+
+                        {/* Min Stok */}
+                        <div className="grid grid-cols-4 items-center gap-4">
+                            <Label htmlFor="min_stok" className="text-right flex justify-end gap-1 items-center">
+                                Min. Stok
+                                <span title="Stok minimum sebelum barang dianggap hampir habis. Jika nilai 0, maka dianggap tidak ada nilai min." className="cursor-pointer text-gray-400 hover:text-gray-600">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24">
+                                        <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" fill="none" />
+                                        <path d="M12 8v4m0 4h.01" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                                    </svg>
+                                </span>
+                            </Label>
+                            <Input
+                                id="min_stok"
+                                type="number"
+                                min={0}
+                                value={data.min_stok}
+                                onChange={(e) => setData('min_stok', parseInt(e.target.value) || 0)}
+                                className="col-span-3"
+                            />
+                            {errors.stok && (
+                                <p className="col-span-4 text-sm text-red-600 text-right">{errors.min_stok}</p>
                             )}
                         </div>
 

@@ -86,7 +86,7 @@ export default function Dashboard() {
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody>
-                                        {barangHampirHabis.filter(barang => barang.stok < 10).map((barang, index) => (
+                                        {barangHampirHabis.map((barang, index) => (
                                             <TableRow
                                                 key={barang.id}
                                                 className={clsx(

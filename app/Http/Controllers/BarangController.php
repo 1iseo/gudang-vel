@@ -68,6 +68,7 @@ class BarangController extends Controller
             'kategori_id' => 'required|exists:kategori,id',
             'lokasi_id' => 'nullable|exists:lokasi,id',
             'stok' => 'nullable|integer|min:0',
+            'min_stok' => 'nullable|integer|min:0', 
             'image' => 'nullable|image|max:2048',
         ]);
 
@@ -92,6 +93,7 @@ class BarangController extends Controller
             $barang = Barang::create([
                 'nama' => $validated['nama'],
                 'stok' => $validated['stok'] ?? 0,
+                'min_stok' => $validated['min_stok'] ?? 0,
                 'lokasi_id' => $validated['lokasi_id'],
                 'kategori_id' => $validated['kategori_id'],
                 'image_path' => $imagePath,
@@ -135,6 +137,7 @@ class BarangController extends Controller
             'kategori_id' => 'required|exists:kategori,id',
             'lokasi_id' => 'nullable|exists:lokasi,id',
             'stok' => 'required|integer|min:0',
+            'min_stok' => 'nullable|integer|min:0',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
         ]);
 

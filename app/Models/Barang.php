@@ -14,7 +14,7 @@ class Barang extends Model
     use HasFactory;
 
     protected $table = 'barang';
-    protected $fillable = ['kode', 'nama', 'stok', 'lokasi_id', 'kategori_id', 'image_path'];
+    protected $fillable = ['kode', 'nama', 'stok', 'min_stok', 'lokasi_id', 'kategori_id', 'image_path'];
     protected $with = ['kategori', 'lokasi'];
 
     protected static function boot()
