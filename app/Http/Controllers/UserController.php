@@ -11,7 +11,7 @@ use Inertia\Inertia;
 class UserController extends \Illuminate\Routing\Controller
 {
     use \Illuminate\Foundation\Auth\Access\AuthorizesRequests;
-    
+
     public function __construct()
     {
         $this->authorizeResource(User::class, 'user');
@@ -34,7 +34,8 @@ class UserController extends \Illuminate\Routing\Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users',
+            // 'email' => 'required|string|email|max:255|unique:users',
+            'username' => 'required|string|max:255|unique:users',
             'password' => 'required|string|min:8',
             'role' => ['required', Rule::in(['admin', 'pegawai'])],
         ]);
@@ -45,7 +46,8 @@ class UserController extends \Illuminate\Routing\Controller
 
         User::create([
             'name' => $validated['name'],
-            'email' => $validated['email'],
+            'username' => $validated['username'],
+            // 'email' => $validated['email'],
             'password' => Hash::make($validated['password']),
             'role' => $validated['role'],
         ]);
@@ -76,7 +78,7 @@ class UserController extends \Illuminate\Routing\Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'email' => ['required', 'string', 'email', 'max:255', Rule::unique('users')->ignore($user->id)],
+            'username' => ['required', 'string', 'max:255', Rule::unique('users')->ignore($user->id)],
             'role' => ['required', Rule::in(['admin', 'pegawai'])],
             'password' => 'nullable|string|min:8',
         ]);
@@ -86,7 +88,8 @@ class UserController extends \Illuminate\Routing\Controller
         }
 
         $user->name = $validated['name'];
-        $user->email = $validated['email'];
+        $user->username = $validated['username'];
+        // $user->email = $validated['email'];
         $user->role = $validated['role'];
 
         if (!empty($validated['password'])) {
