@@ -16,7 +16,7 @@ type UserFormProps = {
 export default function UserForm({ isOpen, onClose, user }: UserFormProps) {
     const { data, setData, post, put, processing, errors, reset } = useForm({
         name: user?.name || '',
-        email: user?.email || '',
+        username: user?.username || '',
         role: user?.role || 'pegawai',
         password: '',
         password_confirmation: '',
@@ -30,7 +30,7 @@ export default function UserForm({ isOpen, onClose, user }: UserFormProps) {
         if (user) {
             setData({
                 name: user.name,
-                email: user.email,
+                username: user.username,
                 role: user.role,
                 password: '',
                 password_confirmation: '',
@@ -72,12 +72,12 @@ export default function UserForm({ isOpen, onClose, user }: UserFormProps) {
                             </div>
                         </div>
                         <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="email" className="text-right">
-                                Email
+                            <Label htmlFor="username" className="text-right">
+                                Username
                             </Label>
                             <div className="col-span-3">
-                                <Input id="email" type="email" value={data.email} onChange={(e) => setData('email', e.target.value)} />
-                                {errors.email && <p className="text-sm text-red-600 mt-1">{errors.email}</p>}
+                                <Input id="username" type="text" value={data.username} onChange={(e) => setData('username', e.target.value)} />
+                                {errors.username && <p className="text-sm text-red-600 mt-1">{errors.username}</p>}
                             </div>
                         </div>
                         <div className="grid grid-cols-4 items-center gap-4">
