@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
+use Illuminate\Database\Eloquent\Builder;
 
 class LoginRequest extends FormRequest
 {
@@ -40,8 +41,16 @@ class LoginRequest extends FormRequest
     public function authenticate(): void
     {
         $this->ensureIsNotRateLimited();
+        $username = $this->input('username');
+        $password = $this->input('password');
 
-        if (!Auth::attempt($this->only('username', 'password'), $this->boolean('remember'))) {
+        if (
+            !Auth::attempt([
+                'username' => $username,
+                'password' => $password,
+                fn(Builder $query) => $query->whereIn('role', ['admin', 'super_admin']),
+            ], $this->boolean('remember'))
+        ) {
             RateLimiter::hit($this->throttleKey());
 
             throw ValidationException::withMessages([
