@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, use } from 'react';
 import { Head, Link, useForm, usePage } from '@inertiajs/react';
 import { router } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
@@ -13,11 +13,28 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Pagination, PaginationContent, PaginationItem, PaginationLink } from '@/components/ui/pagination';
 import { MoreHorizontal, PlusCircle, Pencil, Trash2, Eye } from 'lucide-react';
+import 'leaflet/dist/leaflet.css';
+import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
+import L from 'leaflet';
+
+// Fix for default marker icon issue with webpack/vite
+import icon from 'leaflet/dist/images/marker-icon.png';
+import iconShadow from 'leaflet/dist/images/marker-shadow.png';
+
+let DefaultIcon = L.icon({
+    iconUrl: icon,
+    shadowUrl: iconShadow,
+    iconAnchor: [12, 41],
+});
+
+L.Marker.prototype.options.icon = DefaultIcon;
 
 interface LokasiWithCount {
     id: number;
     nama: string;
     barang_count: number;
+    latitude?: string;
+    longitude?: string;
 }
 
 interface PaginatedLokasi {
@@ -39,29 +56,52 @@ export default function LokasiIndex() {
     const [isAddDialogOpen, setAddDialogOpen] = useState(false);
     const [editingLokasi, setEditingLokasi] = useState<LokasiWithCount | null>(null);
     const [deletingLokasi, setDeletingLokasi] = useState<LokasiWithCount | null>(null);
+    const [isMapModalOpen, setMapModalOpen] = useState(false);
+    const [isConfirmNoMapOpen, setConfirmNoMapOpen] = useState(false);
+    const [viewingLokasiMap, setViewingLokasiMap] = useState<LokasiWithCount | null>(null);
+
 
     const { data, setData, post, put, processing, errors: formErrors, reset } = useForm({
         id: undefined as number | undefined,
         nama: '',
+        latitude: '',
+        longitude: ''
     });
 
     // Effect to open edit dialog and set form data
     useEffect(() => {
         if (editingLokasi) {
-            setData({ id: editingLokasi.id, nama: editingLokasi.nama });
+            // Muat nama dan juga koordinat yang sudah ada
+            setData({
+                id: editingLokasi.id,
+                nama: editingLokasi.nama,
+                latitude: editingLokasi.latitude || '',
+                longitude: editingLokasi.longitude || '',
+            });
         } else {
-            reset(); // Reset form when closing dialog
+            // Reset form saat dialog ditutup
+            reset();
         }
     }, [editingLokasi]);
 
-    const handleAddSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
+    const proceedWithSubmit = () => {
         post(route('lokasi.store'), {
             onSuccess: () => {
-                setAddDialogOpen(false);
+                setConfirmNoMapOpen(false); // Close confirmation if open
+                setAddDialogOpen(false);    // Close the main form dialog
                 reset();
             },
         });
+    };
+
+    const handleAddSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        // Check if coordinates are missing
+        if (!data.latitude || !data.longitude) {
+            setConfirmNoMapOpen(true); // If so, open the confirmation dialog
+        } else {
+            proceedWithSubmit();
+        }
     };
 
     const handleEditSubmit = (e: React.FormEvent) => {
@@ -105,6 +145,7 @@ export default function LokasiIndex() {
                                 <TableRow>
                                     <TableHead>Nama Lokasi</TableHead>
                                     <TableHead className="text-center">Jumlah Barang</TableHead>
+                                    <TableHead className="text-center">Map</TableHead>
                                     <TableHead><span className="sr-only">Aksi</span></TableHead>
                                 </TableRow>
                             </TableHeader>
@@ -123,7 +164,22 @@ export default function LokasiIndex() {
                                             <TableCell className="text-center">
                                                 <Badge variant="secondary"><span className='font-semibold'>{lokasi.barang_count}</span> Barang</Badge>
                                             </TableCell>
-                                            <TableCell className="text-right">
+                                            <TableCell className="text-center">
+                                                {lokasi.latitude && lokasi.longitude ? (
+                                                    <Button
+                                                        variant="outline"
+                                                        size="sm"
+                                                        className="gap-1"
+                                                        onClick={() => setViewingLokasiMap(lokasi)}
+                                                    >
+                                                        <Eye className="h-3.5 w-3.5" />
+                                                        <span>Lihat Peta</span>
+                                                    </Button>
+                                                ) : (
+                                                    <Badge variant="secondary">Tidak Ada</Badge>
+                                                )}
+                                            </TableCell>
+                                            <TableCell>
                                                 <DropdownMenu>
                                                     <DropdownMenuTrigger asChild>
                                                         <Button aria-haspopup="true" size="icon" variant="ghost">
@@ -143,7 +199,7 @@ export default function LokasiIndex() {
                                                         {/* NOTE: Tanpa setTimeout akan terjadi bug focus trap dan nanti UI tidak bisa diklik */}
                                                         <DropdownMenuItem onClick={() => setTimeout(() => setEditingLokasi(lokasi), 50)}>
                                                             <Pencil className="mr-2 h-4 w-4" />
-                                                            <span>Ubah Nama</span>
+                                                            <span>Edit</span>
                                                         </DropdownMenuItem>
                                                         <DropdownMenuItem
                                                             className="text-red-600 focus:text-red-600 focus:bg-red-100"
@@ -191,13 +247,12 @@ export default function LokasiIndex() {
                 </Card>
             </main>
 
-            {/* Add Category Dialog */}
             <Dialog open={isAddDialogOpen} onOpenChange={setAddDialogOpen}>
                 <DialogContent className="sm:max-w-[425px]">
                     <form onSubmit={handleAddSubmit}>
                         <DialogHeader>
                             <DialogTitle>Tambah Lokasi Baru</DialogTitle>
-                            <DialogDescription>Masukkan nama untuk lokasi baru.</DialogDescription>
+                            <DialogDescription>Masukkan detail  lokasi baru.</DialogDescription>
                         </DialogHeader>
                         <div className="grid gap-4 py-4">
                             <div className="grid grid-cols-4 items-center gap-4">
@@ -211,6 +266,32 @@ export default function LokasiIndex() {
                                 />
                                 {formErrors.nama && <p className="col-span-4 text-sm text-red-500 text-right">{formErrors.nama}</p>}
                             </div>
+
+                            <div className="grid grid-cols-4 items-center gap-4">
+                                <Label htmlFor="map" className="text-right">
+                                    Map
+                                </Label>
+                                <div className="col-span-3 flex items-center gap-2">
+                                    <Input
+                                        id="map"
+                                        readOnly
+                                        value={
+                                            data.latitude && data.longitude
+                                                ? `${parseFloat(data.latitude).toFixed(5)}, ${parseFloat(data.longitude).toFixed(5)}`
+                                                : 'Belum dipilih'
+                                        }
+                                        className="flex-grow"
+                                    />
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        onClick={() => setMapModalOpen(true)}
+                                    >
+                                        Pilih
+                                    </Button>
+                                </div>
+                                {/* You can add an error display for coordinates if needed */}
+                            </div>
                         </div>
                         <DialogFooter>
                             <Button type="button" variant="outline" onClick={() => setAddDialogOpen(false)}>Batal</Button>
@@ -220,13 +301,60 @@ export default function LokasiIndex() {
                 </DialogContent>
             </Dialog>
 
-            {/* Edit Category Dialog */}
+            <Dialog open={!!viewingLokasiMap} onOpenChange={() => setViewingLokasiMap(null)}>
+                <DialogContent className="sm:max-w-[600px]">
+                    <DialogHeader>
+                        <DialogTitle>Peta Lokasi: {viewingLokasiMap?.nama}</DialogTitle>
+                        <DialogDescription>
+                            Ini adalah titik koordinat yang tersimpan untuk lokasi ini.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="py-4">
+                        {viewingLokasiMap?.latitude && viewingLokasiMap?.longitude ? (
+                            <LocationViewerMap
+                                lat={parseFloat(viewingLokasiMap.latitude)}
+                                lng={parseFloat(viewingLokasiMap.longitude)}
+                            />
+                        ) : (
+                            <p>Tidak ada data koordinat untuk ditampilkan.</p>
+                        )}
+                    </div>
+                </DialogContent>
+            </Dialog>
+
+            <Dialog open={isMapModalOpen} onOpenChange={setMapModalOpen}>
+                <DialogContent className="sm:max-w-[600px]">
+                    <DialogHeader>
+                        <DialogTitle>Pilih Lokasi di Peta</DialogTitle>
+                        <DialogDescription>
+                            Klik pada peta atau geser penanda untuk memilih lokasi yang tepat.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <MapPicker
+                        initialPosition={(() => {
+                            const lat = parseFloat(data.latitude);
+                            const lng = parseFloat(data.longitude);
+                            if (!isNaN(lat) && !isNaN(lng)) {
+                                return { lat, lng };
+                            }
+                            return undefined;
+                        })()}
+                        onClose={() => setMapModalOpen(false)}
+                        onLocationSelect={(lat, lng) => {
+                            setData('latitude', lat.toString());
+                            setData('longitude', lng.toString());
+                            // Modal close dihandle oleh tombol confirm MapPicker 
+                        }}
+                    />
+                </DialogContent>
+            </Dialog>
+
             <Dialog open={!!editingLokasi} onOpenChange={() => setEditingLokasi(null)}>
                 <DialogContent className="sm:max-w-[425px]">
                     <form id='edit-lokasi-form' onSubmit={handleEditSubmit}>
                         <DialogHeader>
-                            <DialogTitle>Ubah Nama Lokasi</DialogTitle>
-                            <DialogDescription>Perbarui nama untuk lokasi yang dipilih.</DialogDescription>
+                            <DialogTitle>Ubah Detail Lokasi</DialogTitle>
+                            <DialogDescription>Perbarui detail untuk lokasi yang dipilih.</DialogDescription>
                         </DialogHeader>
                         <div className="grid gap-4 py-4">
                             <div className="grid grid-cols-4 items-center gap-4">
@@ -239,6 +367,30 @@ export default function LokasiIndex() {
                                     autoFocus
                                 />
                                 {formErrors.nama && <p className="col-span-4 text-sm text-red-500 text-right">{formErrors.nama}</p>}
+                            </div>
+                        </div>
+                        <div className="grid mb-4 grid-cols-4 items-center gap-4">
+                            <Label htmlFor="edit-map" className="text-right">
+                                Map
+                            </Label>
+                            <div className="col-span-3 flex items-center gap-2">
+                                <Input
+                                    id="edit-map"
+                                    readOnly
+                                    value={
+                                        data.latitude && data.longitude
+                                            ? `${parseFloat(data.latitude).toFixed(5)}, ${parseFloat(data.longitude).toFixed(5)}`
+                                            : 'Belum dipilih'
+                                    }
+                                    className="flex-grow"
+                                />
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    onClick={() => setMapModalOpen(true)}
+                                >
+                                    Ubah
+                                </Button>
                             </div>
                         </div>
                         <DialogFooter>
@@ -270,6 +422,152 @@ export default function LokasiIndex() {
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
-        </AppLayout>
+
+
+            <AlertDialog open={isConfirmNoMapOpen} onOpenChange={setConfirmNoMapOpen}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Apakah Anda Yakin?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            Anda tidak menginputkan titik koordinat menggunakan peta untuk lokasi ini.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Tidak</AlertDialogCancel>
+                        <AlertDialogAction onClick={proceedWithSubmit}>
+                            Ya
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+        </AppLayout >
     );
 }
+
+
+const LocationViewerMap: React.FC<{ lat: number; lng: number }> = ({ lat, lng }) => {
+    if (isNaN(lat) || isNaN(lng)) {
+        return <div className="text-center text-red-500">Koordinat tidak valid.</div>;
+    }
+
+    const position: L.LatLngTuple = [lat, lng];
+
+    useEffect(() => {
+        console.log("LocationViewerMap mounted with position:", position);
+    }, []);
+
+    return (
+        <MapContainer
+            center={position}
+            zoom={16}
+            style={{ height: '400px', width: '100%', borderRadius: '8px' }}
+            scrollWheelZoom={false} // Good practice for maps in modals
+        >
+            <TileLayer
+                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            />
+            <Marker position={position}></Marker>
+        </MapContainer>
+    );
+};
+
+
+interface MapPickerProps {
+    onLocationSelect: (lat: number, lng: number) => void;
+    onClose: () => void;
+    initialPosition?: { lat: number; lng: number };
+}
+
+const MapPicker: React.FC<MapPickerProps> = ({ onLocationSelect, onClose, initialPosition }) => {
+    const defaultPosition: L.LatLngTuple = [-7.402, 109.694];
+    const [position, setPosition] = useState<L.LatLngTuple | null>(null);
+
+    // Get user's current location
+    useEffect(() => {
+        // Prioritaskan initialPosition jika ada
+        if (initialPosition && initialPosition.lat && initialPosition.lng) {
+            setPosition([initialPosition.lat, initialPosition.lng]);
+        } else {
+            // Jika tidak, baru cari lokasi pengguna saat ini
+            navigator.geolocation.getCurrentPosition(
+                (pos) => {
+                    setPosition([pos.coords.latitude, pos.coords.longitude]);
+                },
+                () => {
+                    // Fallback ke lokasi default jika gagal
+                    setPosition([-7.402, 109.694]);
+                }
+            );
+        }
+    }, []);
+
+    const DraggableMarker = () => {
+        const markerRef = React.useRef<L.Marker>(null);
+        const eventHandlers = React.useMemo(
+            () => ({
+                dragend() {
+                    const marker = markerRef.current;
+                    if (marker != null) {
+                        const { lat, lng } = marker.getLatLng();
+                        setPosition([lat, lng]);
+                    }
+                },
+            }),
+            []
+        );
+
+        useMapEvents({
+            click(e) {
+                setPosition([e.latlng.lat, e.latlng.lng]);
+            },
+        });
+
+
+        return (
+            <Marker
+                draggable={true}
+                eventHandlers={eventHandlers}
+                position={position!}
+                ref={markerRef}
+            />
+        );
+    };
+
+    if (!position) {
+        return <div>Loading map...</div>;
+    }
+
+    const handleConfirm = () => {
+        if (position) {
+            onLocationSelect(position[0], position[1]);
+            onClose();
+        }
+    };
+
+    return (
+        <div>
+            <MapContainer
+                center={position}
+                zoom={15}
+                style={{ height: '400px', width: '100%' }}
+            >
+                <TileLayer
+                    attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                />
+                <DraggableMarker />
+            </MapContainer>
+            <div className="mt-4 flex justify-end gap-2">
+                <Button type="button" variant="outline" onClick={onClose}>
+                    Batal
+                </Button>
+                <Button onClick={handleConfirm}>
+                    Konfirmasi Lokasi
+                </Button>
+            </div>
+        </div>
+    );
+
+
+};
